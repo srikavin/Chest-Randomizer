@@ -22,7 +22,7 @@ public class main extends JavaPlugin
 	double version = 1.2;
 	File rConfigFile;
 	FileConfiguration rConfig;	
-	String prefix = ChatColor.GREEN + "[" + ChatColor.GRAY + "Chest Randomizer" + ChatColor.GREEN + "] " + ChatColor.WHITE;
+	String prefix = ChatColor.GREEN + " [" + ChatColor.GRAY + "Chest Randomizer" + ChatColor.GREEN + "] " + ChatColor.WHITE;
 
 	public void onEnable() {
 		update();
