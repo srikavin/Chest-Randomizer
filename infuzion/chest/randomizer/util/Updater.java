@@ -1,4 +1,11 @@
-package src.infuzion.chest.randomizer;
+package infuzion.chest.randomizer.util;
+
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -8,13 +15,6 @@ import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 
 /**
  * Check for updates on BukkitDev for a given plugin, and download the updates if needed.
@@ -184,7 +184,7 @@ public class Updater {
      *
      * @param plugin   The plugin that is checking for an update.
      * @param id       The dev.bukkit.org id of the project.
-     * @param file     The file that the plugin is running from, get this by doing this.getFile() from within your main class.
+     * @param file     The file that the plugin is running from, get this by doing this.getFile() from within your ChestRandomizer class.
      * @param type     Specify the type of update this will be. See {@link UpdateType}
      * @param announce True if the program should announce the progress of new updates in console.
      */
@@ -197,7 +197,7 @@ public class Updater {
      *
      * @param plugin   The plugin that is checking for an update.
      * @param id       The dev.bukkit.org id of the project.
-     * @param file     The file that the plugin is running from, get this by doing this.getFile() from within your main class.
+     * @param file     The file that the plugin is running from, get this by doing this.getFile() from within your ChestRandomizer class.
      * @param type     Specify the type of update this will be. See {@link UpdateType}
      * @param callback The callback instance to notify when the Updater has finished
      */
@@ -210,7 +210,7 @@ public class Updater {
      *
      * @param plugin   The plugin that is checking for an update.
      * @param id       The dev.bukkit.org id of the project.
-     * @param file     The file that the plugin is running from, get this by doing this.getFile() from within your main class.
+     * @param file     The file that the plugin is running from, get this by doing this.getFile() from within your ChestRandomizer class.
      * @param type     Specify the type of update this will be. See {@link UpdateType}
      * @param callback The callback instance to notify when the Updater has finished
      * @param announce True if the program should announce the progress of new updates in console.
@@ -696,7 +696,7 @@ public class Updater {
     }
 
     /**
-     * Called on main thread when the Updater has finished working, regardless
+     * Called on ChestRandomizer thread when the Updater has finished working, regardless
      * of result.
      */
     public interface UpdateCallback {
