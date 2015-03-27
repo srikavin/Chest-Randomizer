@@ -1,0 +1,31 @@
+name: ChestRandomizer
+author: Infuzion
+version: 2.0
+database: false
+
+main: infuzion.chest.randomizer.ChestRandomizer
+description: A plugin that allows the randomization of chests for minigames such as Hunger games, Walls, and skywars.
+website: http://dev.bukkit.org/bukkit-plugins/chest-randomizer/
+
+commands:
+  chestrandomizer:
+    description: The main command of this plugin
+    aliases: [cr]
+    permission: cr.access
+    usage: /chestrandomizer
+
+permissions:
+  cr.reload:
+    description: Allows the use of /cr reload
+    default: op
+  cr.randomize:
+    description: Allows the use of /cr randomize
+  cr.access:
+    description: Allows the use of /cr
+  cr.*:
+    description: Gives access to all chest randomizer commands
+    default: op
+    children:
+      cr.randomize: true
+      cr.reload: true
+      cr.access: true
