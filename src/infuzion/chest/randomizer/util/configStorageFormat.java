@@ -14,10 +14,6 @@ public class configStorageFormat {
     private String lore;
     private boolean error = false;
 
-    public ItemStack getItem(){
-        return new ItemStack(item);
-    }
-
     public configStorageFormat(String configValue) {
         String[] split;
         this.configValue = configValue.trim();
@@ -69,6 +65,10 @@ public class configStorageFormat {
         this.lore = lore;
     }
 
+    public ItemStack getItem() {
+        return new ItemStack(item);
+    }
+
     @Override
     public String toString() {
         return configValue;
@@ -86,7 +86,7 @@ public class configStorageFormat {
         return name;
     }
 
-    public Boolean hasErrored(){
+    public Boolean hasErrored() {
         return error;
     }
 }

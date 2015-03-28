@@ -4,7 +4,6 @@ import infuzion.chest.randomizer.ChestRandomizer;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class configManager {
@@ -51,7 +50,7 @@ public class configManager {
         config.options().copyDefaults(true);
         pl.saveConfig();
 
-        if(config.getBoolean("ChestRandomizer.Verbose-Output")) {
+        if (config.getBoolean("ChestRandomizer.Verbose-Output")) {
             for (configStorageFormat e : getAllConfigValues()) {
                 pl.getLogger().severe(pl.getPrefix() + "Loaded: " + e.toString());
             }
@@ -68,12 +67,12 @@ public class configManager {
         return ret;
     }
 
-    private List<configStorageFormat> loadConfigValues(List<String> ls){
+    private List<configStorageFormat> loadConfigValues(List<String> ls) {
         List<configStorageFormat> returnVal = new ArrayList<configStorageFormat>();
         configStorageFormat cSF;
         for (String i : ls) {
             cSF = new configStorageFormat(i);
-            if(!cSF.hasErrored()) {
+            if (!cSF.hasErrored()) {
                 returnVal.add(cSF);
             }
         }

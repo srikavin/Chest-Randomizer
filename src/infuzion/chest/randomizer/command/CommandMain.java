@@ -69,7 +69,7 @@ public class CommandMain implements CommandExecutor {
                         }
                         randomizeChest(loc, args[4]);
                     } catch (NumberFormatException e) {
-                        sender.sendMessage(pl.getPrefix() + ChatColor.DARK_RED  + "X, Y, (and/or) Z values are not a number. Please use valid numbers");
+                        sender.sendMessage(pl.getPrefix() + ChatColor.DARK_RED + "X, Y, (and/or) Z values are not a number. Please use valid numbers");
                     }
                 }
                 return true;

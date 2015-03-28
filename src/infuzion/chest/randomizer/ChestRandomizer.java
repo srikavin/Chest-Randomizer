@@ -28,19 +28,19 @@ public class ChestRandomizer extends JavaPlugin {
         configManager = new configManager(this);
         prefix = messagesManager.getMessage("Variables.Prefix");
         getCommand("chestrandomizer").setExecutor(new CommandMain(this));
-        if(!getConfig().getBoolean("ChestRandomizer.Metrics.Opt-Out")){
+        if (!getConfig().getBoolean("ChestRandomizer.Metrics.Opt-Out")) {
             try {
                 new Metrics(this);
             } catch (IOException e) {
                 getLogger().warning("Could not Log Metric Statistics! Verify internet connection is available and try again!");
             }
         }
-        if(!getConfig().getBoolean("ChestRandomizer.Updater.Opt-Out")){
-         //   startUpdater();
+        if (!getConfig().getBoolean("ChestRandomizer.Updater.Opt-Out")) {
+            //   startUpdater();
         }
     }
 
-    public String getPrefix(){
+    public String getPrefix() {
         return prefix;
     }
 
@@ -53,7 +53,7 @@ public class ChestRandomizer extends JavaPlugin {
     }
 
     public boolean randomize(int percent) {
-        if (percent >= 100){
+        if (percent >= 100) {
             return true;
         }
         if (percent < 0) {
@@ -66,7 +66,7 @@ public class ChestRandomizer extends JavaPlugin {
         return false;
     }
 
-    public void startUpdater(){
+    public void startUpdater() {
         Updater updater = new Updater(this, 83511, this.getFile(), Updater.UpdateType.DEFAULT, true);
     }
 
