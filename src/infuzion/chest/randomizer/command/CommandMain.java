@@ -26,50 +26,50 @@ public class CommandMain implements CommandExecutor {
     configManager configManager;
     Random random;
 
-    public CommandMain(ChestRandomizer pl) {
+    public CommandMain (ChestRandomizer pl) {
         this.pl = pl;
-        this.messagesManager = pl.getMessagesManager();
-        this.configManager = pl.getConfigManager();
-        random = new Random();
+        this.messagesManager = pl.getMessagesManager ();
+        this.configManager = pl.getConfigManager ();
+        random = new Random ();
     }
 
-    public static int yawToFace(float yaw) {
-        return axis[Math.round(yaw / 90f) & 0x3];
+    public static int yawToFace (float yaw) {
+        return axis[Math.round (yaw / 90f) & 0x3];
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    public boolean onCommand (CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length > 0) {
-            if (args[0].equalsIgnoreCase("reload")) {
-                pl.reloadConfig();
-                sender.sendMessage(messagesManager.getMessage("ReloadSuccess"));
-            } else if (args[0].equalsIgnoreCase("updater")) {
-                if (args[1].equalsIgnoreCase("opt-in")) {
-                    configManager.set("Updater.Opt-Out", false);
-                } else if (args[1].equalsIgnoreCase("opt-out")) {
-                    configManager.set("Updater.Opt-Out", true);
-                } else if (args[1].equalsIgnoreCase("update-now")) {
-                    pl.startUpdater();
+            if (args[0].equalsIgnoreCase ("reload")) {
+                pl.reloadConfig ();
+                sender.sendMessage (messagesManager.getMessage ("ReloadSuccess"));
+            } else if (args[0].equalsIgnoreCase ("updater")) {
+                if (args[1].equalsIgnoreCase ("opt-in")) {
+                    configManager.set ("Updater.Opt-Out", false);
+                } else if (args[1].equalsIgnoreCase ("opt-out")) {
+                    configManager.set ("Updater.Opt-Out", true);
+                } else if (args[1].equalsIgnoreCase ("update-now")) {
+                    pl.startUpdater ();
                 }
-            } else if (args[0].equalsIgnoreCase("randomize") || args[0].equalsIgnoreCase("r")) {
+            } else if (args[0].equalsIgnoreCase ("randomize") || args[0].equalsIgnoreCase ("r")) {
                 if (sender instanceof Player && args.length == 1) {
                     Player p = ((Player) sender);
-                    Location location = p.getLocation();
+                    Location location = p.getLocation ();
 
-                    randomizeChest(location, yawToFace(location.getYaw()));
+                    randomizeChest (location, yawToFace (location.getYaw ()));
                 } else if (args.length >= 4) { // /cr r <x> <y> <z> <facing> [world]
                     try {
-                        Double x = Double.parseDouble(args[1]);
-                        Double y = Double.parseDouble(args[2]);
-                        Double z = Double.parseDouble(args[3]);
+                        Double x = Double.parseDouble (args[1]);
+                        Double y = Double.parseDouble (args[2]);
+                        Double z = Double.parseDouble (args[3]);
 
-                        Location loc = new Location(Bukkit.getWorlds().get(0), x, y, z);
+                        Location loc = new Location (Bukkit.getWorlds ().get (0), x, y, z);
                         if (args.length > 5) {
-                            loc.setWorld(Bukkit.getWorld(args[5]));
+                            loc.setWorld (Bukkit.getWorld (args[5]));
                         }
-                        randomizeChest(loc, args[4]);
+                        randomizeChest (loc, args[4]);
                     } catch (NumberFormatException e) {
-                        sender.sendMessage(pl.getPrefix() + ChatColor.DARK_RED + "X, Y, (and/or) Z values are not a number. Please use valid numbers");
+                        sender.sendMessage (pl.getPrefix () + ChatColor.DARK_RED + "X, Y, (and/or) Z values are not a number. Please use valid numbers");
                     }
                 }
                 return true;
@@ -78,35 +78,35 @@ public class CommandMain implements CommandExecutor {
         return false;
     }
 
-    private void randomizeChest(Location location, int facing) {
+    private void randomizeChest (Location location, int facing) {
         //Position and face the chest properly
-        location.getBlock().setType(Material.CHEST);
-        BlockState chest = location.getBlock().getState();
-        chest.setRawData((byte) facing);
+        location.getBlock ().setType (Material.CHEST);
+        BlockState chest = location.getBlock ().getState ();
+        chest.setRawData ((byte) facing);
 
         //Randomize the amount of items inside the chest
-        int max = pl.getConfig().getInt("ChestRandomizer.RandomizerSettings.MaximumItems");
-        int min = pl.getConfig().getInt("ChestRandomizer.RandomizerSettings.MinimumItems");
-        int ritems = random.nextInt(max + 1);
+        int max = pl.getConfig ().getInt ("ChestRandomizer.RandomizerSettings.MaximumItems");
+        int min = pl.getConfig ().getInt ("ChestRandomizer.RandomizerSettings.MinimumItems");
+        int ritems = random.nextInt (max + 1);
         if (ritems < min) {
             ritems = min;
         }
 
         //Randomize items inside the chest
-        Inventory chestInv = ((Chest) location.getBlock().getState()).getBlockInventory();
-        List<configStorageFormat> toAdd = configManager.getAllConfigValues();
+        Inventory chestInv = ((Chest) location.getBlock ().getState ()).getBlockInventory ();
+        List<configStorageFormat> toAdd = configManager.getAllConfigValues ();
 
         for (int i = 0; i < ritems; i++) {
-            if (pl.randomize(toAdd.get((i % toAdd.size())).getPercent())) {
-                chestInv.addItem(toAdd.get((i % toAdd.size())).getItem());
+            if (pl.randomize (toAdd.get ((i % toAdd.size ())).getPercent ())) {
+                chestInv.addItem (toAdd.get ((i % toAdd.size ())).getItem ());
             }
         }
 
-        chest.update();
+        chest.update ();
     }
 
-    private boolean randomizeChest(Location loc, String dir) {
-        char direction = dir.toLowerCase().trim().charAt(0);
+    private boolean randomizeChest (Location loc, String dir) {
+        char direction = dir.toLowerCase ().trim ().charAt (0);
         int facing;
 
         switch (direction) {
@@ -123,12 +123,12 @@ public class CommandMain implements CommandExecutor {
                 facing = 4;
                 break;
             default:
-                facing = -1;
+                facing = - 1;
                 break;
         }
 
         if (facing > 1) {
-            randomizeChest(loc, facing);
+            randomizeChest (loc, facing);
             return true;
         } else {
             return false;

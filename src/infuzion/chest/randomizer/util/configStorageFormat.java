@@ -14,29 +14,29 @@ public class configStorageFormat {
     private String lore;
     private boolean error = false;
 
-    public configStorageFormat(String configValue) {
+    public configStorageFormat (String configValue) {
         String[] split;
-        this.configValue = configValue.trim();
+        this.configValue = configValue.trim ();
 
-        split = configValue.trim().split(" ", 2);
+        split = configValue.trim ().split (" ", 2);
         try {
-            percent = Integer.parseInt(split[0].replace("%", "").trim());
+            percent = Integer.parseInt (split[0].replace ("%", "").trim ());
         } catch (NumberFormatException e) {
             error = true;
-            ChestRandomizer.getPlugin(ChestRandomizer.class).getLogger().severe("Failed to read number in config: " + split[0].trim());
+            ChestRandomizer.getPlugin (ChestRandomizer.class).getLogger ().severe ("Failed to read number in config: " + split[0].trim ());
         }
-        if (!error) {
+        if (! error) {
             declared = 1;
         } else {
             return;
         }
-        itemID = split[1].trim();
-        item = Material.matchMaterial(itemID);
+        itemID = split[1].trim ();
+        item = Material.matchMaterial (itemID);
         if (item != null) {
             declared = 2;
         } else {
             error = true;
-            ChestRandomizer.getPlugin(ChestRandomizer.class).getLogger().severe("Failed to read item name in config: " + split[1].trim());
+            ChestRandomizer.getPlugin (ChestRandomizer.class).getLogger ().severe ("Failed to read item name in config: " + split[1].trim ());
         }
 
         if (split.length > 2) {
@@ -44,20 +44,20 @@ public class configStorageFormat {
         }
     }
 
-    public configStorageFormat(String item, int percent) {
+    public configStorageFormat (String item, int percent) {
         configValue = percent + "% " + item;
         itemID = item;
         this.percent = percent;
     }
 
-    public configStorageFormat(String item, int percent, String name) {
+    public configStorageFormat (String item, int percent, String name) {
         configValue = percent + "% " + item + " " + name + "%en% ";
         itemID = item;
         this.percent = percent;
         this.name = name;
     }
 
-    public configStorageFormat(String item, int percent, String name, String lore) {
+    public configStorageFormat (String item, int percent, String name, String lore) {
         configValue = percent + "% " + item + " " + name + "%en% " + lore + "%el%";
         itemID = item;
         this.percent = percent;
@@ -65,28 +65,28 @@ public class configStorageFormat {
         this.lore = lore;
     }
 
-    public ItemStack getItem() {
-        return new ItemStack(item);
+    public ItemStack getItem () {
+        return new ItemStack (item);
     }
 
     @Override
-    public String toString() {
+    public String toString () {
         return configValue;
     }
 
-    public int getPercent() {
+    public int getPercent () {
         return percent;
     }
 
-    public String getItemID() {
+    public String getItemID () {
         return itemID;
     }
 
-    public String getName() {
+    public String getName () {
         return name;
     }
 
-    public Boolean hasErrored() {
+    public Boolean hasErrored () {
         return error;
     }
 }

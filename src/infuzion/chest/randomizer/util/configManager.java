@@ -10,15 +10,15 @@ public class configManager {
     ChestRandomizer pl;
     FileConfiguration config;
 
-    public configManager(ChestRandomizer pl) {
+    public configManager (ChestRandomizer pl) {
         this.pl = pl;
-        init();
+        init ();
     }
 
-    private void init() {
-        config = pl.getConfig();
+    private void init () {
+        config = pl.getConfig ();
 
-        config.options().header(
+        config.options ().header (
                 "**************************************#*************************************** #\n" +
                         "|-------------------------------ChestRandomizer------------------------------| #\n" +
                         "**************************************#*************************************** #\n" +
@@ -30,61 +30,61 @@ public class configManager {
                         "|  Refer to: http://www.minecraftinfo.com/idnamelist.htm for names.          | #\n" +
                         "|     Refer to: http://www.minecraftinfo.com/idlist.htm for IDs.             | #\n" +
                         "**************************************#*************************************** #\n");
-        addDefault("Version", 2.0f);
-        addDefault("Verbose-Output", false);
+        addDefault ("Version", 2.0f);
+        addDefault ("Verbose-Output", false);
 
-        addDefault("Metrics.Opt-Out", false);
-        addDefault("Updater.Opt-Out", false);
+        addDefault ("Metrics.Opt-Out", false);
+        addDefault ("Updater.Opt-Out", false);
 
-        addDefault("RandomizerSettings.MaximumItems", 10);
-        addDefault("RandomizerSettings.MinimumItems", 2);
+        addDefault ("RandomizerSettings.MaximumItems", 10);
+        addDefault ("RandomizerSettings.MinimumItems", 2);
 
-        ArrayList<String> defaultName = new ArrayList<String>();
-        defaultName.add(new configStorageFormat("redstone_block", 48).toString());
-        addDefault("ByName", defaultName);
+        ArrayList<String> defaultName = new ArrayList<String> ();
+        defaultName.add (new configStorageFormat ("redstone_block", 48).toString ());
+        addDefault ("ByName", defaultName);
 
-        ArrayList<String> defaultID = new ArrayList<String>();
-        defaultID.add(new configStorageFormat("152", 68).toString());
-        addDefault("ByID", defaultID
+        ArrayList<String> defaultID = new ArrayList<String> ();
+        defaultID.add (new configStorageFormat ("152", 68).toString ());
+        addDefault ("ByID", defaultID
         );
-        config.options().copyDefaults(true);
-        pl.saveConfig();
+        config.options ().copyDefaults (true);
+        pl.saveConfig ();
 
-        if (config.getBoolean("ChestRandomizer.Verbose-Output")) {
-            for (configStorageFormat e : getAllConfigValues()) {
-                pl.getLogger().severe(pl.getPrefix() + "Loaded: " + e.toString());
+        if (config.getBoolean ("ChestRandomizer.Verbose-Output")) {
+            for (configStorageFormat e : getAllConfigValues ()) {
+                pl.getLogger ().severe (pl.getPrefix () + "Loaded: " + e.toString ());
             }
         }
     }
 
-    public List<configStorageFormat> getAllConfigValues() {
-        List<String> ls = config.getStringList("ChestRandomizer.ByName");
-        List<String> ls2 = config.getStringList("ChestRandomizer.ByID");
+    public List<configStorageFormat> getAllConfigValues () {
+        List<String> ls = config.getStringList ("ChestRandomizer.ByName");
+        List<String> ls2 = config.getStringList ("ChestRandomizer.ByID");
 
-        List<configStorageFormat> ret = loadConfigValues(ls);
-        ret.addAll(loadConfigValues(ls2));
+        List<configStorageFormat> ret = loadConfigValues (ls);
+        ret.addAll (loadConfigValues (ls2));
 
         return ret;
     }
 
-    private List<configStorageFormat> loadConfigValues(List<String> ls) {
-        List<configStorageFormat> returnVal = new ArrayList<configStorageFormat>();
+    private List<configStorageFormat> loadConfigValues (List<String> ls) {
+        List<configStorageFormat> returnVal = new ArrayList<configStorageFormat> ();
         configStorageFormat cSF;
         for (String i : ls) {
-            cSF = new configStorageFormat(i);
-            if (!cSF.hasErrored()) {
-                returnVal.add(cSF);
+            cSF = new configStorageFormat (i);
+            if (! cSF.hasErrored ()) {
+                returnVal.add (cSF);
             }
         }
         return returnVal;
     }
 
 
-    public void addDefault(String name, Object value) {
-        config.addDefault("ChestRandomizer." + name, value);
+    public void addDefault (String name, Object value) {
+        config.addDefault ("ChestRandomizer." + name, value);
     }
 
-    public void set(String name, Object value) {
-        config.set("ChestRandomizer." + name, value);
+    public void set (String name, Object value) {
+        config.set ("ChestRandomizer." + name, value);
     }
 }
