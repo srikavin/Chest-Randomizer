@@ -17,7 +17,6 @@ commands:
 permissions:
   cr.reload:
     description: Allows the use of /cr reload
-    default: op
   cr.randomize:
     description: Allows the use of /cr randomize
   cr.access:

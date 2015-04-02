@@ -5,44 +5,55 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 public class configStorageFormat {
-    private int declared = 0;
-    private String configValue;
+    private final String configValue;
     private String itemID;
     private Material item;
-    private String name;
     private int percent = 0;
-    private String lore;
     private boolean error = false;
+    /*
+        Planned:
+    private String lore;
+    private String name;
+    private int declared = 0;
+    */
 
     public configStorageFormat (String configValue) {
         String[] split;
-        this.configValue = configValue.trim ();
+        this.configValue = configValue.trim();
 
-        split = configValue.trim ().split (" ", 2);
+        split = configValue.trim().split(" ", 2);
         try {
-            percent = Integer.parseInt (split[0].replace ("%", "").trim ());
+            percent = Integer.parseInt(split[0].replace("%", "").trim());
         } catch (NumberFormatException e) {
             error = true;
-            ChestRandomizer.getPlugin (ChestRandomizer.class).getLogger ().severe ("Failed to read number in config: " + split[0].trim ());
+            ChestRandomizer.getPlugin(ChestRandomizer.class).getLogger().severe("Failed to read number in config: " + split[0].trim());
         }
-        if (! error) {
-            declared = 1;
+        if (!error) {
+            //declared = 1;
         } else {
             return;
         }
-        itemID = split[1].trim ();
-        item = Material.matchMaterial (itemID);
+        itemID = split[1].trim();
+        item = Material.matchMaterial(itemID);
         if (item != null) {
-            declared = 2;
+            // declared = 2;
         } else {
-            error = true;
-            ChestRandomizer.getPlugin (ChestRandomizer.class).getLogger ().severe ("Failed to read item name in config: " + split[1].trim ());
+            try {
+                item = Material.getMaterial(Integer.parseInt(split[1]));
+            } catch (NumberFormatException e) {
+                error = true;
+                ChestRandomizer.getPlugin(ChestRandomizer.class).getLogger().severe("Failed to read item name in config: " + split[1].trim());
+            }
         }
 
+        /*
+        Planned
         if (split.length > 2) {
             name = split[2];
         }
+        */
     }
+
 
     public configStorageFormat (String item, int percent) {
         configValue = percent + "% " + item;
@@ -50,6 +61,8 @@ public class configStorageFormat {
         this.percent = percent;
     }
 
+    //Planned:
+    /*
     public configStorageFormat (String item, int percent, String name) {
         configValue = percent + "% " + item + " " + name + "%en% ";
         itemID = item;
@@ -62,11 +75,12 @@ public class configStorageFormat {
         itemID = item;
         this.percent = percent;
         this.name = name;
-        this.lore = lore;
+        String s = this.lore = lore;
     }
+    */
 
     public ItemStack getItem () {
-        return new ItemStack (item);
+        return new ItemStack(item);
     }
 
     @Override
@@ -78,15 +92,23 @@ public class configStorageFormat {
         return percent;
     }
 
-    public String getItemID () {
+    /*public String getItemID () {
         return itemID;
-    }
+    }*/
 
+    /*
+    Planned:
     public String getName () {
         return name;
     }
+    */
 
     public Boolean hasErrored () {
         return error;
     }
+
+    /*public int getDeclared () {
+        return declared;
+    }
+    */
 }

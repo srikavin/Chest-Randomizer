@@ -19,23 +19,28 @@ public class ChestRandomizer extends JavaPlugin {
 
     @Override
     public void onLoad () {
-        random = new Random ();
+        random = new Random();
+    }
+
+    public void reloadPluginConfig() {
+        messagesManager.reload();
+        reloadConfig();
     }
 
     @Override
     public void onEnable () {
-        messagesManager = new messagesManager (this);
-        configManager = new configManager (this);
-        prefix = messagesManager.getMessage ("Variables.Prefix");
-        getCommand ("chestrandomizer").setExecutor (new CommandMain (this));
-        if (! getConfig ().getBoolean ("ChestRandomizer.Metrics.Opt-Out")) {
+        messagesManager = new messagesManager(this);
+        prefix = messagesManager.getMessage("Variables.Prefix");
+        configManager = new configManager(this);
+        getCommand("chestrandomizer").setExecutor(new CommandMain(this));
+        if (!getConfig().getBoolean("ChestRandomizer.Metrics.Opt-Out")) {
             try {
-                new Metrics (this);
+                new Metrics(this);
             } catch (IOException e) {
-                getLogger ().warning ("Could not Log Metric Statistics! Verify internet connection is available and try again!");
+                getLogger().warning("Could not Log Metric Statistics! Verify internet connection is available and try again!");
             }
         }
-        if (! getConfig ().getBoolean ("ChestRandomizer.Updater.Opt-Out")) {
+        if (!getConfig().getBoolean("ChestRandomizer.Updater.Opt-Out")) {
             //   startUpdater();
         }
     }
@@ -57,9 +62,9 @@ public class ChestRandomizer extends JavaPlugin {
             return true;
         }
         if (percent < 0) {
-            getLogger ().severe ("Negative Value detected in configuration file. This value will be ignored.");
+            getLogger().severe("Negative Value detected in configuration file. This value will be ignored.");
         } else {
-            if (random.nextInt (101) <= percent) {
+            if (random.nextInt(101) <= percent) {
                 return true;
             }
         }
@@ -67,7 +72,7 @@ public class ChestRandomizer extends JavaPlugin {
     }
 
     public void startUpdater () {
-        Updater updater = new Updater (this, 83511, this.getFile (), Updater.UpdateType.DEFAULT, true);
+        new Updater(this, 83511, this.getFile(), Updater.UpdateType.DEFAULT, true);
     }
 
 }
