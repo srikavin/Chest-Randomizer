@@ -18,7 +18,7 @@ public class ChestRandomizer extends JavaPlugin {
     private String prefix;
 
     @Override
-    public void onLoad () {
+    public void onLoad() {
         random = new Random();
     }
 
@@ -28,7 +28,7 @@ public class ChestRandomizer extends JavaPlugin {
     }
 
     @Override
-    public void onEnable () {
+    public void onEnable() {
         messagesManager = new messagesManager(this);
         prefix = messagesManager.getMessage("Variables.Prefix");
         configManager = new configManager(this);
@@ -41,37 +41,34 @@ public class ChestRandomizer extends JavaPlugin {
             }
         }
         if (!getConfig().getBoolean("ChestRandomizer.Updater.Opt-Out")) {
-            //   startUpdater();
+            startUpdater();
         }
     }
 
-    public String getPrefix () {
+    public String getPrefix() {
         return prefix;
     }
 
-    public messagesManager getMessagesManager () {
+    public messagesManager getMessagesManager() {
         return messagesManager;
     }
 
-    public configManager getConfigManager () {
+    public configManager getConfigManager() {
         return configManager;
     }
 
-    public boolean randomize (int percent) {
+    public boolean randomize(int percent) {
         if (percent >= 100) {
             return true;
-        }
-        if (percent < 0) {
+        } else if (percent < 0) {
             getLogger().severe("Negative Value detected in configuration file. This value will be ignored.");
-        } else {
-            if (random.nextInt(101) <= percent) {
-                return true;
-            }
+        } else if (random.nextInt(101) <= percent) {
+            return true;
         }
         return false;
     }
 
-    public void startUpdater () {
+    public void startUpdater() {
         new Updater(this, 83511, this.getFile(), Updater.UpdateType.DEFAULT, true);
     }
 
