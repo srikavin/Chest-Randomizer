@@ -22,8 +22,8 @@ public class configManager {
                 "**************************************#*************************************** #\n" +
                         "|-------------------------------ChestRandomizer------------------------------| #\n" +
                         "**************************************#*************************************** #\n" +
-                        "|Format: [Percent] [ItemName]:{Data} {Name} {Lore}  []: Required {}:Optional | #\n" +
-                        "|Format: [Percent] [ItemName]:{Data} {Name}  []: Required {}:Optional        | #\n" +
+                        "|Format: [Percent] [ItemName]:{Data}         []: Required {}:Optional        | #\n" +
+                        "|Format: [Percent] [ItemName]:{Data}         []: Required {}:Optional        | #\n" +
                         "|      Example: 48% wool:1                   48% Chance of wool              | #\n" +
                         "| For Item Id's put it in the ID section, while putting item-names in        | #\n" +
                         "|                        the item-name section!                              | #\n" +

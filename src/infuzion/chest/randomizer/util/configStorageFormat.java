@@ -6,7 +6,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class configStorageFormat {
     private final String configValue;
-    private String itemID;
+    private final String itemID;
     private Material item;
     private int percent = 0;
     private boolean error = false;
@@ -28,16 +28,16 @@ public class configStorageFormat {
             error = true;
             ChestRandomizer.getPlugin(ChestRandomizer.class).getLogger().severe("Failed to read number in config: " + split[0].trim());
         }
-        if (!error) {
+        /*if (!error) {
             //declared = 1;
         } else {
             return;
-        }
+        }*/
         itemID = split[1].trim();
         item = Material.matchMaterial(itemID);
-        if (item != null) {
+        if (item == null) {
             // declared = 2;
-        } else {
+        //} else {
             try {
                 item = Material.getMaterial(Integer.parseInt(split[1]));
             } catch (NumberFormatException e) {
