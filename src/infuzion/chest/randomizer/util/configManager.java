@@ -19,17 +19,18 @@ public class configManager {
         config = pl.getConfig();
 
         config.options().header(
-                "**************************************#*************************************** #\n" +
-                        "|-------------------------------ChestRandomizer------------------------------| #\n" +
-                        "**************************************#*************************************** #\n" +
-                        "|Format: [Percent] [ItemName]:{Data}         []: Required {}:Optional        | #\n" +
-                        "|Format: [Percent] [ItemName]:{Data}         []: Required {}:Optional        | #\n" +
-                        "|      Example: 48% wool:1                   48% Chance of wool              | #\n" +
-                        "| For Item Id's put it in the ID section, while putting item-names in        | #\n" +
-                        "|                        the item-name section!                              | #\n" +
-                        "|  Refer to: http://www.minecraftinfo.com/idnamelist.htm for names.          | #\n" +
-                        "|     Refer to: http://www.minecraftinfo.com/idlist.htm for IDs.             | #\n" +
-                        "**************************************#*************************************** #\n");
+                        "********************************************************************************************* #\n" +
+                        "|---------------------------------------Chest Randomizer------------------------------------| #\n" +
+                        "********************************************************************************************* #\n" +
+                        "| Format: [Percent] [ItemName]:{Data} {enchant},{enchant2} {lore}  []: Required {}:Optional | #\n" +
+                        "| Format: [Percent] [ItemID]:{Data} {enchant},{enchant2} {lore}    []: Required {}:Optional | #\n" +
+                        "|                 Example: 48% wool:1 protection:4      48% Chance of wool                  | #\n" +
+                        "|   Example: 48% wool:1 none Lore        48% Chance of wool with no enchant and with lore   | #\n" +
+                        "|              For Item Id's put it in the ID section, while putting item-names in          | #\n" +
+                        "|                                  the item-name section!                                   | #\n" +
+                        "|            Refer to: http://www.minecraftinfo.com/idnamelist.htm for names.               | #\n" +
+                        "|                Refer to: http://www.minecraftinfo.com/idlist.htm for IDs.                 | #\n" +
+                        "********************************************************************************************* #\n");
         addDefault("Version", 2.0f);
         addDefault("Verbose-Output", false);
 
@@ -40,19 +41,18 @@ public class configManager {
         addDefault("RandomizerSettings.MinimumItems", 2);
 
         ArrayList<String> defaultName = new ArrayList<String>();
-        defaultName.add(new configStorageFormat("redstone_block", 48).toString());
+        defaultName.add(new configStorageFormat("48% diamond_sword:234 0:15 &4Pretty good sword \\n &5Created in the realm of &2ice \\n &3It is said that the wielder gets stronger").toString());
+
         addDefault("ByName", defaultName);
 
         ArrayList<String> defaultID = new ArrayList<String>();
-        defaultID.add(new configStorageFormat("152", 68).toString());
-        addDefault("ByID", defaultID
-        );
+              addDefault("ByID", defaultID);
         config.options().copyDefaults(true);
         pl.saveConfig();
 
         if (config.getBoolean("ChestRandomizer.Verbose-Output")) {
             for (configStorageFormat e : getAllConfigValues()) {
-                pl.getLogger().severe(pl.getPrefix() + "Loaded: " + e.toString());
+                pl.getLogger().info(pl.getPrefix() + "Loaded: " + e.toString());
             }
         }
     }

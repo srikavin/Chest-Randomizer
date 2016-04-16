@@ -1,6 +1,6 @@
 name: ChestRandomizer
 author: Infuzion
-version: 2.0
+version: 2.1.1
 database: false
 
 main: infuzion.chest.randomizer.ChestRandomizer
@@ -28,3 +28,6 @@ permissions:
       cr.randomize: true
       cr.reload: true
       cr.access: true
+      cr.metrics: true
+  cr.metrics:
+    description: Gives access to metrics opting in and out

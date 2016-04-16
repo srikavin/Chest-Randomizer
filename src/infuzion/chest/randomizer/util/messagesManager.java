@@ -40,7 +40,13 @@ public class messagesManager {
         addMessage("Variables.Prefix", "&7[&6Chest-Randomizer&7]&8");
         addMessage("Variables.ServerName", "&5ServerName");
         addMessage("ChestRandomizationError.Direction", "%prefix% &4Invalid Direction!");
+        addMessage("ChestRandomizationError.Number", "%prefix% &4Invalid Value!");
         addMessage("ReloadSuccess", "%prefix% &aPlugin config successfully reloaded!");
+        addMessage("Metrics.OptOut", "%prefix% Metrics had been &4disabled");
+        addMessage("Metrics.OptIn", "%prefix% Metrics had been &aensabled");
+        addMessage("Updater.OptOut", "%prefix% Auto-Updater had been &4disabled");
+        addMessage("Updater.OptIn", "%prefix% Auto-Updater had been &aensabled");
+        addMessage("RandomizeSuccess", "%prefix% &aA chest has been placed successfully.");
         messagesConfig.options().copyDefaults(true);
         try {
             messagesConfig.save(messagesFile);

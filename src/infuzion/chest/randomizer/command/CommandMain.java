@@ -41,6 +41,7 @@ public class CommandMain implements CommandExecutor {
             if (args[0].equalsIgnoreCase("reload")) {
                 pl.reloadPluginConfig();
                 sender.sendMessage(messagesManager.getMessage("ReloadSuccess"));
+                return true;
             } else if (args[0].equalsIgnoreCase("updater")) {
                 if (args[1].equalsIgnoreCase("opt-in")) {
                     configManager.set("Updater.Opt-Out", false);
@@ -49,12 +50,14 @@ public class CommandMain implements CommandExecutor {
                 } else if (args[1].equalsIgnoreCase("update-now")) {
                     pl.startUpdater();
                 }
+                return  true;
             } else if (args[0].equalsIgnoreCase("randomize") || args[0].equalsIgnoreCase("r")) {
                 if (sender instanceof Player && args.length == 1) {
                     Player p = ((Player) sender);
                     Location location = p.getLocation();
 
                     randomizeChest(location, yawToFace(location.getYaw()));
+                    return true;
                 } else if (args.length >= 4) { // /cr r <x> <y> <z> <facing> [world]
                     try {
                         Double x = Double.parseDouble(args[1]);
@@ -73,9 +76,11 @@ public class CommandMain implements CommandExecutor {
                         }
                         if (!randomizeChest(loc, dir)) {
                             sender.sendMessage(messagesManager.getMessage("ChestRandomizationError.Direction"));
+                            return true;
                         }
+                        sender.sendMessage(messagesManager.getMessage("RandomizeSuccess"));
                     } catch (NumberFormatException e) {
-                        sender.sendMessage(pl.getPrefix() + messagesManager.getMessage("ChestRandomizationError.InvalidNumber"));
+                        sender.sendMessage(messagesManager.getMessage("ChestRandomizationError.InvalidNumber"));
                     }
                 }
                 return true;
