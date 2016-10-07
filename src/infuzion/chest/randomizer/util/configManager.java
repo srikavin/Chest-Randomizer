@@ -72,7 +72,7 @@ public class configManager {
         configStorageFormat cSF;
         for (String i : ls) {
             cSF = new configStorageFormat(i);
-            if (!cSF.hasErrored()) {
+            if (!cSF.hasError()) {
                 returnVal.add(cSF);
             }
         }

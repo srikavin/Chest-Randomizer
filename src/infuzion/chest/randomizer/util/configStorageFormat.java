@@ -58,42 +58,59 @@ public class configStorageFormat {
             }
         }
         itemstack = new ItemStack(item, 1, data);
-        if (split.length > 2) {
-            String[] enchantmentSplit = split[2].split(",", 0); // enchant1,enchant2 -> [enchantname],[lvl]
-            int enchantmentLevel;
-            Enchantment enchantment;
-            int enchantmentID;
-            for (String e : enchantmentSplit) {
-                try {
-                    enchantmentLevel = Integer.parseInt(e.split(":", 2)[1]);
-                    enchantment = Enchantment.getByName(e.split(":", 2)[0].toUpperCase());
-                    if (enchantment == null && !e.split(":", 2)[0].equalsIgnoreCase("none")) {
-                        enchantmentID = Integer.parseInt(e.split(":", 2)[0]);
-                        enchantment = Enchantment.getById(enchantmentID);
-                    }
-                    enchantmentMap.put(enchantment, enchantmentLevel);
-                } catch (NumberFormatException err) {
-                    ChestRandomizer.getPlugin(ChestRandomizer.class).getLogger().severe("Failed to read item enchant in config: " + e);
-                }
 
-            }
-            if (!enchantmentMap.isEmpty()) {
-                itemstack.addUnsafeEnchantments(enchantmentMap);
-            }
-            if (split.length > 3) {
-                lore = split[3];
-                ItemMeta loreMeta = itemstack.getItemMeta();
-                loreMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', lore).split("\\n")));
-                itemstack.setItemMeta(loreMeta);
-            }
+
+        if (split.length >= 3) {
+            addEnchantments(split[2].trim());
         }
-
+        if (split.length >= 4) {
+            addLore(split[3].trim());
+        }
     }
 
-    private void generateItem(){
-
+    private void generateItem() {
+        itemstack = new ItemStack(item, 1, data);
     }
     //public configStorageFormat(String )
+
+    private void addEnchantments(String enchantments) {
+        if (enchantments.equalsIgnoreCase("none")) {
+            return;
+        }
+        int enchantmentLevel;
+        Enchantment enchantment;
+        int enchantmentID;
+        String[] enchantmentSplit = enchantments.split(",", 0); // enchant1,enchant2 -> [enchantname],[lvl]
+
+        for (String e : enchantmentSplit) {
+            try {
+                if (e.split(":", 2).length != 2) {
+                    throw new ArrayIndexOutOfBoundsException();
+                }
+
+                enchantment = Enchantment.getByName(e.split(":", 2)[0].toUpperCase());
+                enchantmentLevel = Integer.parseInt(e.split(":", 2)[1]);
+
+                if (enchantment == null) {
+                    enchantmentID = Integer.parseInt(e.split(":", 2)[0]);
+                    enchantment = Enchantment.getById(enchantmentID);
+                }
+                enchantmentMap.put(enchantment, enchantmentLevel);
+            } catch (Exception err) {
+                ChestRandomizer.getPlugin(ChestRandomizer.class).getLogger().severe("Failed to read item enchant in config: " + e);
+            }
+
+        }
+        if (!enchantmentMap.isEmpty()) {
+            itemstack.addUnsafeEnchantments(enchantmentMap);
+        }
+    }
+
+    private void addLore(String lore) {
+        ItemMeta loreMeta = itemstack.getItemMeta();
+        loreMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', lore).split("\\|\\|")));
+        itemstack.setItemMeta(loreMeta);
+    }
 
     public configStorageFormat(String item, int percent) {
         configValue = percent + "% " + item;
@@ -114,7 +131,7 @@ public class configStorageFormat {
         return percent;
     }
 
-    public Boolean hasErrored() {
+    boolean hasError() {
         return error;
     }
 }
