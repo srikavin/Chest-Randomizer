@@ -1,6 +1,6 @@
 name: ChestRandomizer
 author: Infuzion
-version: 2.1.1
+version: 3.0
 database: false
 
 main: infuzion.chest.randomizer.ChestRandomizer
@@ -13,21 +13,36 @@ commands:
     aliases: [cr]
     permission: cr.access
     usage: /chestrandomizer
+  chestrandomizer admin:
+    description: The admin portion of this plugin
+    permission: cr.admin
+    usage: /chestrandomizer admin
 
 permissions:
   cr.reload:
     description: Allows the use of /cr reload
-  cr.randomize:
-    description: Allows the use of /cr randomize
+  cr.randomize.*:
+    description: Allows the use of all available radomization groups with /cr randomize
+    children:
+      cr.access: true
   cr.access:
     description: Allows the use of /cr
+  cr.location.*:
+    description: Allows specifying a location when randomizing a chest
+  cr.admin:
+    description: Allows the use of /cr admin
+    children:
+      cr.reload: true
+      cr.opt: true
+      cr.access: true
   cr.*:
     description: Gives access to all chest randomizer commands
     default: op
     children:
-      cr.randomize: true
+      cr.randomize.*: true
       cr.reload: true
       cr.access: true
-      cr.metrics: true
-  cr.metrics:
-    description: Gives access to metrics opting in and out
+      cr.admin: true
+      cr.opt: true
+  cr.opt:
+    description: Gives access to metrics and updater opting in and out
