@@ -5,7 +5,11 @@ import infuzion.chest.randomizer.event.onConsoleCommand;
 import infuzion.chest.randomizer.event.onPlayerCommandPreprocessEvent;
 import infuzion.chest.randomizer.event.onPlayerDisconnect;
 import infuzion.chest.randomizer.event.tabCompleter;
-import infuzion.chest.randomizer.util.*;
+import infuzion.chest.randomizer.util.Metrics;
+import infuzion.chest.randomizer.util.Updater;
+import infuzion.chest.randomizer.util.configuration.configManager;
+import infuzion.chest.randomizer.util.messages.Messages;
+import infuzion.chest.randomizer.util.messages.messagesManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,8 +23,8 @@ public class ChestRandomizer extends JavaPlugin {
     @SuppressWarnings("FieldCanBeLocal")
     private final double version = 3.0d;
     private final HashMap<CommandSender, String> confirmationGroups = new HashMap<CommandSender, String>();
-    private messagesManager messagesManager;
-    private configManager configManager;
+    private infuzion.chest.randomizer.util.messages.messagesManager messagesManager;
+    private infuzion.chest.randomizer.util.configuration.configManager configManager;
     private Random random;
     private String prefix;
     private HashMap<CommandSender, Integer> confirmations = new HashMap<CommandSender, Integer>();
@@ -71,8 +75,8 @@ public class ChestRandomizer extends JavaPlugin {
 
         if (!getConfig().getBoolean("ChestRandomizer.Metrics.Opt-Out")) {
             try {
-                new Metrics(this);
-                Bukkit.getServer().getServerId();
+                Metrics metrics = new Metrics(this);
+                metrics.start();
             } catch (IOException e) {
                 getLogger().warning("Could not Log Metric Statistics! Verify internet connection is available and try again!");
             }

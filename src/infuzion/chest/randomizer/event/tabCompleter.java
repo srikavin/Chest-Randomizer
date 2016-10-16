@@ -17,12 +17,11 @@ public class tabCompleter implements TabCompleter {
     }
 
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> ls = new ArrayList<String>();
+        List<String> possible = new ArrayList<String>();
         if (sender instanceof Player) {
             Player p = (Player) sender;
             if (args.length == 1) {
                 //cr r [group]
-                List<String> possible = new ArrayList<String>();
                 if (sender.hasPermission("cr.access")) {
                     possible.add("randomize");
                 }
@@ -39,7 +38,6 @@ public class tabCompleter implements TabCompleter {
                 return pl.possibilityChecker(possible, args[0]);
             } else if (args.length == 2) {
                 if (args[0].equalsIgnoreCase("r") || args[0].equalsIgnoreCase("randomize")) {
-                    List<String> possible = new ArrayList<String>();
                     for (String e : pl.getConfigManager().getGroupNames()) {
                         if (sender.hasPermission("cr.randomize." + e)) {
                             possible.add(e);
@@ -47,14 +45,32 @@ public class tabCompleter implements TabCompleter {
                     }
                     return pl.possibilityChecker(possible, args[1]);
                 } else if (args[0].equalsIgnoreCase("admin")) {
-                    List<String> possible = new ArrayList<String>();
                     possible.add("add");
                     possible.add("remove");
+                    possible.add("create");
                     return pl.possibilityChecker(possible, args[1]);
+                }
+            } else if (args.length == 3) {
+                if (args[1].equalsIgnoreCase("remove")) {
+                    for (String e : pl.getConfigManager().getGroupNames()) {
+                        if (sender.hasPermission("cr.randomize." + e)) {
+                            possible.add(e);
+                        }
+                    }
+                    return pl.possibilityChecker(possible, args[2]);
+                }
+            } else if (args.length == 4) {
+                if (args[1].equalsIgnoreCase("add")) {
+                    for (String e : pl.getConfigManager().getGroupNames()) {
+                        if (sender.hasPermission("cr.randomize." + e)) {
+                            possible.add(e);
+                        }
+                    }
+                    return pl.possibilityChecker(possible, args[3]);
                 }
             }
         }
-        return ls;
+        return new ArrayList<String>();
     }
 
 

@@ -1,4 +1,4 @@
-package infuzion.chest.randomizer.util;
+package infuzion.chest.randomizer.util.configuration;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

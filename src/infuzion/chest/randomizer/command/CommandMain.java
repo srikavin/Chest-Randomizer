@@ -1,9 +1,9 @@
 package infuzion.chest.randomizer.command;
 
 import infuzion.chest.randomizer.ChestRandomizer;
-import infuzion.chest.randomizer.util.Messages;
-import infuzion.chest.randomizer.util.configItemStorageFormat;
-import infuzion.chest.randomizer.util.configManager;
+import infuzion.chest.randomizer.util.configuration.configItemStorageFormat;
+import infuzion.chest.randomizer.util.configuration.configManager;
+import infuzion.chest.randomizer.util.messages.Messages;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -89,11 +89,13 @@ public class CommandMain implements CommandExecutor {
                 }
                 return true;
             } else if (args[0].equalsIgnoreCase("randomize") || args[0].equalsIgnoreCase("r")) {
-                if (args.length > 1) {
-                    if (!sender.hasPermission("cr.randomize." + args[1])) {
-                        sender.sendMessage(Messages.error_permission);
-                        return true;
-                    }
+                String permissionGroup = "default";
+                if (args.length < 3 && args.length > 2) {
+                    permissionGroup = args[1];
+                }
+                if (!sender.hasPermission("cr.randomize." + permissionGroup)) {
+                    sender.sendMessage(Messages.error_permission);
+                    return true;
                 }
                 if (sender instanceof Player && (args.length < 3 || !sender.hasPermission("cr.location." + args[1]))) {
                     Player p = ((Player) sender);
@@ -193,7 +195,10 @@ public class CommandMain implements CommandExecutor {
         //Randomize items inside the chest
         Inventory chestInv = ((Chest) location.getBlock().getState()).getBlockInventory();
         List<configItemStorageFormat> toAdd = configManager.getConfigValue(group);
-
+        if (toAdd.size() == 0) {
+            pl.getLogger().warning(pl.getPrefix() + " Group " + group + " is empty. This will result in an empty chest  ");
+            return true;
+        }
         List<ItemStack> items = new ArrayList<ItemStack>();
 
         for (int i = 0; i < ritems; i++) {

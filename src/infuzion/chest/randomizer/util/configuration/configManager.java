@@ -1,4 +1,4 @@
-package infuzion.chest.randomizer.util;
+package infuzion.chest.randomizer.util.configuration;
 
 import infuzion.chest.randomizer.ChestRandomizer;
 import org.bukkit.ChatColor;
@@ -76,7 +76,7 @@ public class configManager {
         config.addDefault("ChestRandomizer." + name, value);
     }
 
-    static String createHeader(String strings[]) {
+    public static String createHeader(String strings[]) {
         int longest = 0;
         for (String e : strings) {
             e = e.trim();
