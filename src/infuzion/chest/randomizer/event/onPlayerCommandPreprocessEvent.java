@@ -1,7 +1,7 @@
 package infuzion.chest.randomizer.event;
 
 import infuzion.chest.randomizer.ChestRandomizer;
-import infuzion.chest.randomizer.util.Messages;
+import infuzion.chest.randomizer.util.messages.Messages;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

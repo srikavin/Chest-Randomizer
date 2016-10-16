@@ -1,6 +1,7 @@
-package infuzion.chest.randomizer.util;
+package infuzion.chest.randomizer.util.messages;
 
 import infuzion.chest.randomizer.ChestRandomizer;
+import infuzion.chest.randomizer.util.configuration.configManager;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -45,7 +46,7 @@ public class messagesManager {
         addMessage("Updater.OptOut", "%prefix% Auto-Updater had been &4disabled");
         addMessage("Updater.OptIn", "%prefix% Auto-Updater had been &aensabled");
         addMessage("Randomize.Success", "%prefix% &aA chest has been placed successfully.");
-        addMessage("Admin.Help", "%prefix% &4Usage: /cr admin [help/add/remove]");
+        addMessage("Admin.Help", "%prefix% &4Usage: /cr admin [help/add/remove/create]");
         addMessage("Admin.Add.Help", "%prefix% &4Usage: /cr admin add <percent> [group]");
         addMessage("Admin.Remove.Help", "%prefix% &4Usage: /cr admin remove [group]");
         addMessage("Admin.Remove.Prompt", "%prefix% &2Type /confirm to confirm this action. This will time out in 30 seconds.");

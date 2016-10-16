@@ -1,4 +1,4 @@
-package infuzion.chest.randomizer.util;
+package infuzion.chest.randomizer.util.messages;
 
 import infuzion.chest.randomizer.ChestRandomizer;
 

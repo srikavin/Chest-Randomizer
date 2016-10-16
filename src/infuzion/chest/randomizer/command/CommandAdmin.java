@@ -1,8 +1,8 @@
 package infuzion.chest.randomizer.command;
 
 import infuzion.chest.randomizer.ChestRandomizer;
-import infuzion.chest.randomizer.util.Messages;
-import infuzion.chest.randomizer.util.configItemStorageFormat;
+import infuzion.chest.randomizer.util.configuration.configItemStorageFormat;
+import infuzion.chest.randomizer.util.messages.Messages;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -29,9 +29,11 @@ class CommandAdmin {
     private void onCommand() {
         if (!sender.hasPermission("cr.admin")) {
             sender.sendMessage(Messages.error_permission);
+            return;
         }
         if (args.length < 2) {
             sender.sendMessage(Messages.admin_help);
+            return;
         }
         if (args[1].equalsIgnoreCase("add")) {
             if (!(sender instanceof Player)) {
@@ -97,9 +99,10 @@ class CommandAdmin {
 
             String group = args[2];
             List<String> toSet = new ArrayList<String>();
-//            toSet.add("placeholder");
             plugin.getConfigManager().set("Groups." + group, toSet);
             sender.sendMessage(Messages.admin_create_success);
+        } else {
+            sender.sendMessage(Messages.admin_help);
         }
     }
 }
