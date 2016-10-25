@@ -9,11 +9,11 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import java.util.HashMap;
 
-public class onPlayerCommandPreprocessEvent implements Listener {
+public class onPlayerCommandPreprocess implements Listener {
 
     private ChestRandomizer plugin;
 
-    public onPlayerCommandPreprocessEvent(ChestRandomizer plugin) {
+    public onPlayerCommandPreprocess(ChestRandomizer plugin) {
         this.plugin = plugin;
     }
 

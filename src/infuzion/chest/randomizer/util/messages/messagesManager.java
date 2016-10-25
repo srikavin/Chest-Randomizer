@@ -44,7 +44,7 @@ public class messagesManager {
         addMessage("Metrics.OptOut", "%prefix% Metrics had been &4disabled");
         addMessage("Metrics.OptIn", "%prefix% Metrics had been &aensabled");
         addMessage("Updater.OptOut", "%prefix% Auto-Updater had been &4disabled");
-        addMessage("Updater.OptIn", "%prefix% Auto-Updater had been &aensabled");
+        addMessage("Updater.OptIn", "%prefix% Auto-Updater had been &aenabled");
         addMessage("Randomize.Success", "%prefix% &aA chest has been placed successfully.");
         addMessage("Admin.Help", "%prefix% &4Usage: /cr admin [help/add/remove/create]");
         addMessage("Admin.Add.Help", "%prefix% &4Usage: /cr admin add <percent> [group]");
@@ -57,7 +57,14 @@ public class messagesManager {
         addMessage("Admin.Create.Help", "%prefix% &4Usage /cr admin create [groupname]");
         addMessage("Admin.Create.Exists", "%prefix% &4The group you specified exists!");
         addMessage("Admin.Create.Success", "%prefix% &aSuccessfully created the group!");
+        addMessage("RandomizeAll.Success", "%prefix% &a%amount% chests have been successfully randomized!");
+        addMessage("RandomizeAll.Help", "%prefix% &4Usage /cr randomizeall all\n" +
+                "%prefix% &4Usage /cr randomizeall <group>\n" +
+                "%prefix% &4Usage /cr randomizeall <x1> <y1> <z1> <x2> <y2> <z2> [world]\n" +
+                "%prefix% &4Usage /cr randomizeall <x> <y> <z> <radius> [world]");
+
         addMessage("Help.Help", "%prefix% Plugin help:");
+        addMessage("Help.RandomizeAll", "%prefix% /cr randomizeall  &bRandomizes ALL chests");
         addMessage("Help.Reload", "%prefix% &a/cr reload      &bReloads the plugin");
         addMessage("Help.Randomize", "%prefix% &a/cr randomize   &bRandomizes a chest");
         addMessage("Help.Admin", "%prefix% &a/cr admin       &bPerforms admin operations");
@@ -99,5 +106,11 @@ public class messagesManager {
         input = input.replace("%prefix%", getMessage("Variables.Prefix", false))
                 .replace("%servername%", getMessage("Variables.ServerName", false));
         return ChatColor.translateAlternateColorCodes('&', input);
+    }
+
+    public void reload() {
+        messagesFile = new File(pl.getDataFolder(), "messages.yml");
+        messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
+        init();
     }
 }

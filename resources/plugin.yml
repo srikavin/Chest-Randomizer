@@ -29,6 +29,10 @@ permissions:
     description: Allows the use of /cr
   cr.location.*:
     description: Allows specifying a location when randomizing a chest
+  cr.randomizeall:
+    description: Allows the use /cr randomizeall
+    children:
+      cr.randomize.*: true
   cr.admin:
     description: Allows the use of /cr admin
     children:
@@ -44,5 +48,6 @@ permissions:
       cr.access: true
       cr.admin: true
       cr.opt: true
+      cr.randomizeall: true
   cr.opt:
     description: Gives access to metrics and updater opting in and out

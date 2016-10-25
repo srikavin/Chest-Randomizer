@@ -40,6 +40,10 @@ public class Messages {
     public static String help_randomize;
     public static String help_help;
     public static String help_empty;
+    public static String randomizeall_success;
+    public static String randomizeall_help;
+    public static String help_randomizeall;
+
     private static messagesManager message;
 
     public Messages(ChestRandomizer pl) {
@@ -70,6 +74,7 @@ public class Messages {
         help_admin = message.getMessage(helpPrefix + "Admin");
         help_help = message.getMessage(helpPrefix + "Help");
         help_empty = message.getMessage(helpPrefix + "Empty");
+        help_randomizeall = message.getMessage(helpPrefix + "RandomizeAll");
 
         admin_help = message.getMessage(adminPrefix + "Help");
         admin_add_help = message.getMessage(adminPrefix + "Add.Help");
@@ -82,6 +87,9 @@ public class Messages {
         admin_create_help = message.getMessage(adminPrefix + "Create.Help");
         admin_create_exists = message.getMessage(adminPrefix + "Create.Exists");
         admin_create_success = message.getMessage(adminPrefix + "Create.Success");
+
+        randomizeall_success = message.getMessage("RandomizeAll.Success");
+        randomizeall_help = message.getMessage("RandomizeAll.Help");
 
         variable_prefix = message.getMessage(variablePrefix + "Prefix");
         variable_servername = message.getMessage(variablePrefix + "ServerName");

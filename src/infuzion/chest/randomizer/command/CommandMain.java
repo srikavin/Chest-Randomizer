@@ -1,21 +1,26 @@
 package infuzion.chest.randomizer.command;
 
 import infuzion.chest.randomizer.ChestRandomizer;
+import infuzion.chest.randomizer.storage.chestLocation;
+import infuzion.chest.randomizer.storage.chestManager;
+import infuzion.chest.randomizer.util.Direction;
 import infuzion.chest.randomizer.util.configuration.configItemStorageFormat;
 import infuzion.chest.randomizer.util.configuration.configManager;
 import infuzion.chest.randomizer.util.messages.Messages;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.BlockState;
+import org.bukkit.World;
 import org.bukkit.block.Chest;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ProxiedCommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,20 +28,98 @@ import java.util.Random;
 
 public class CommandMain implements CommandExecutor {
     private static final int[] axis = {3, 4, 2, 5};
+    private static final Random random = new Random();
+    private static int min;
+    private static int max;
     private final ChestRandomizer pl;
     private final configManager configManager;
-    private final Random random;
+
 
     public CommandMain(ChestRandomizer pl) {
         this.pl = pl;
         this.configManager = pl.getConfigManager();
-        random = new Random();
+        max = pl.getConfig().getInt("ChestRandomizer.RandomizerSettings.MaximumItems");
+        min = pl.getConfig().getInt("ChestRandomizer.RandomizerSettings.MinimumItems");
+        if (max < 0) {
+            max = 0;
+        }
+        if (min < 0) {
+            min = 0;
+        }
     }
 
     private static int yawToFace(float yaw) {
         return axis[Math.round(yaw / 90f) & 0x3];
     }
 
+    public static boolean randomizeChest(Location location, int facing, final String group, final ChestRandomizer pl) {
+
+        //Position and face the chest properly
+        location.getBlock().setType(Material.CHEST);
+        final Chest chest = (Chest) location.getBlock().getState();
+        //noinspection deprecation
+        chest.setRawData((byte) facing);
+
+        //Randomize items inside the chest
+        final Inventory chestInv = chest.getBlockInventory();
+
+        new BukkitRunnable() {
+            public void run() {
+                final List<configItemStorageFormat> toAdd = pl.getConfigManager().getConfigValue(group);
+                if (toAdd.size() <= 0) {
+                    pl.getLogger().warning(pl.getPrefix() + " Group " + group + " is empty. This will result in an empty    chest");
+                    return;
+                }
+                int ritems = random.nextInt(max + 1);
+                if (ritems < min) {
+                    ritems = min;
+                }
+
+                List<ItemStack> items = new ArrayList<ItemStack>();
+
+                for (int i = 0; i < ritems; i++) {
+                    if (pl.randomize(toAdd.get((i % toAdd.size())).getPercent())) {
+                        items.add(toAdd.get((i % toAdd.size())).getItem());
+                    }
+                }
+
+
+                for (ItemStack e : items) {
+                    int slot = random.nextInt(27);
+                    if (chestInv.getItem(slot) == null) {
+                        chestInv.setItem(slot, e);
+                    } else {
+                        chestInv.addItem(e);
+                    }
+                }
+            }
+        }.runTaskAsynchronously(pl);
+        return true;
+    }
+
+    private int getDirection(String dir) {
+        char direction = dir.toLowerCase().trim().charAt(0);
+        int facing;
+
+        switch (direction) {
+            case 'n':
+                facing = 2;
+                break;
+            case 's':
+                facing = 3;
+                break;
+            case 'e':
+                facing = 5;
+                break;
+            case 'w':
+                facing = 4;
+                break;
+            default:
+                facing = -1;
+                break;
+        }
+        return facing;
+    }
 
     private String getHelp(CommandSender sender) {
         StringBuilder help = new StringBuilder();
@@ -48,6 +131,9 @@ public class CommandMain implements CommandExecutor {
         }
         if (sender.hasPermission("cr.admin")) {
             help.append(Messages.help_admin).append("\n");
+        }
+        if (sender.hasPermission("cr.randomizeall")) {
+            help.append(Messages.help_randomizeall).append("\n");
         }
         String toSend = help.toString();
         if (toSend.equals("")) {
@@ -66,9 +152,11 @@ public class CommandMain implements CommandExecutor {
                     sender.sendMessage(Messages.error_permission);
                     return true;
                 }
-                pl.onDisable();
-                pl.onEnable();
+                pl.reloadConfig();
                 sender.sendMessage(Messages.reload_success);
+                return true;
+            } else if (args[0].equalsIgnoreCase("randomizeall")) {
+                randomizeAll(pl, sender, args);
                 return true;
             } else if (args[0].equalsIgnoreCase("admin")) {
                 new CommandAdmin(pl, sender, cmd, label, args);
@@ -107,7 +195,8 @@ public class CommandMain implements CommandExecutor {
                     }
 
                     if (configManager.groupExists(group)) {
-                        randomizeChest(location, yawToFace(location.getYaw()), group);
+                        randomizeChest(location, yawToFace(location.getYaw()), group, pl);
+                        pl.getChestManager().addChest(location, Direction.valueOf(yawToFace(location.getYaw())), group);
                         sender.sendMessage(Messages.randomize_success);
                     } else {
                         sender.sendMessage(Messages.error_group);
@@ -121,13 +210,23 @@ public class CommandMain implements CommandExecutor {
                         String sZ = args[4];
                         String dir = "n";
 
-
                         if (group == null) {
                             group = "default";
                         }
+
+                        pl.getLogger().severe(String.valueOf(sender.getClass()));
+
                         if (sender instanceof Entity) {
                             Entity entity = (Entity) sender;
                             Location entityLocation = entity.getLocation();
+                            sX = sX.replace("~", entityLocation.getX() + "");
+                            sY = sY.replace("~", entityLocation.getY() + "");
+                            sZ = sZ.replace("~", entityLocation.getZ() + "");
+                        }
+
+                        if (sender instanceof ProxiedCommandSender) {
+                            ProxiedCommandSender proxiedCommandSender = (ProxiedCommandSender) sender;
+                            Location entityLocation = ((Entity) proxiedCommandSender.getCallee()).getLocation();
                             sX = sX.replace("~", entityLocation.getX() + "");
                             sY = sY.replace("~", entityLocation.getY() + "");
                             sZ = sZ.replace("~", entityLocation.getZ() + "");
@@ -163,6 +262,8 @@ public class CommandMain implements CommandExecutor {
                             return true;
                         }
                         sender.sendMessage(Messages.randomize_success);
+                        pl.getChestManager().addChest(loc, Direction.valueOf(getDirection(dir)), group);
+
                     } catch (NumberFormatException e) {
                         sender.sendMessage(Messages.error_number);
                     }
@@ -174,75 +275,108 @@ public class CommandMain implements CommandExecutor {
         return true;
     }
 
-    private boolean randomizeChest(Location location, int facing) {
-        return randomizeChest(location, facing, "default");
-    }
+    private void randomizeAll(ChestRandomizer plugin, CommandSender sender, String[] args) {
+        int counter = 0;
+        chestManager chestManager = plugin.getChestManager();
 
-    private boolean randomizeChest(Location location, int facing, String group) {
-        //Position and face the chest properly
-        location.getBlock().setType(Material.CHEST);
-        BlockState chest = location.getBlock().getState();
-        chest.setRawData((byte) facing);
 
-        //Randomize the amount of items inside the chest
-        int max = pl.getConfig().getInt("ChestRandomizer.RandomizerSettings.MaximumItems");
-        int min = pl.getConfig().getInt("ChestRandomizer.RandomizerSettings.MinimumItems");
-        int ritems = random.nextInt(max + 1);
-        if (ritems < min) {
-            ritems = min;
+        if (args.length < 2 || args[1].length() == 0) {
+            for (String e : Messages.randomizeall_help.split("\n")) {
+                sender.sendMessage(e);
+            }
+            return;
         }
+        if (args[1].equalsIgnoreCase("all")) {
+            for (chestLocation e : chestManager.getAllChests()) {
+                chestManager.randomize(e);
+                counter++;
+            }
+            sender.sendMessage(Messages.randomizeall_success.replace("%amount%", String.valueOf(counter)));
+        } else if (plugin.getConfigManager().groupExists(args[1])) {
+            for (chestLocation e : chestManager.getAllChestsInGroup(args[1])) {
+                chestManager.randomize(e);
+                counter++;
+            }
+            sender.sendMessage(Messages.randomizeall_success.replace("%amount%", String.valueOf(counter)));
+        } else if (args.length == 7 || args.length == 8) { //cr randomizeall [x1] [y1] [z1] [x1] [y2] [z2]
+            try {
+                double x1 = Double.parseDouble(args[1]);
+                double y1 = Double.parseDouble(args[2]);
+                double z1 = Double.parseDouble(args[3]);
+                double x2 = Double.parseDouble(args[4]);
+                double y2 = Double.parseDouble(args[5]);
+                double z2 = Double.parseDouble(args[6]);
+                Location loc1 = new Location(Bukkit.getWorlds().get(0), x1, y1, z1);
+                Location loc2 = new Location(Bukkit.getWorlds().get(0), x2, y2, z2);
 
-        //Randomize items inside the chest
-        Inventory chestInv = ((Chest) location.getBlock().getState()).getBlockInventory();
-        List<configItemStorageFormat> toAdd = configManager.getConfigValue(group);
-        if (toAdd.size() == 0) {
-            pl.getLogger().warning(pl.getPrefix() + " Group " + group + " is empty. This will result in an empty chest  ");
-            return true;
-        }
-        List<ItemStack> items = new ArrayList<ItemStack>();
+                if (args.length == 8) {
+                    if (Bukkit.getWorld(args[7]) != null) {
+                        World world = Bukkit.getWorld(args[8]);
+                        loc1.setWorld(world);
+                        loc2.setWorld(world);
+                    } else {
+                        sender.sendMessage(Messages.error_world);
+                        return;
+                    }
+                }
 
-        for (int i = 0; i < ritems; i++) {
-            if (pl.randomize(toAdd.get((i % toAdd.size())).getPercent())) {
-                items.add(toAdd.get((i % toAdd.size())).getItem());
+                for (chestLocation e : chestManager.getAllChestsInCuboid(loc1, loc2)) {
+                    chestManager.randomize(e);
+                    counter++;
+                }
+                sender.sendMessage(Messages.randomizeall_success.replace("%amount%", String.valueOf(counter)));
+            } catch (NumberFormatException e) {
+                sender.sendMessage(Messages.error_number);
+            }
+        } else if (args.length == 5 || args.length == 6) { //cr randomizeall [x] [y] [z] [radius] [world]
+            try {
+                if (sender instanceof Entity) {
+                    Entity entity = (Entity) sender;
+                    if (args[1].equalsIgnoreCase("~")) {
+                        args[1] = String.valueOf(entity.getLocation().getX());
+                    }
+                    if (args[2].equalsIgnoreCase("~")) {
+                        args[2] = String.valueOf(entity.getLocation().getY());
+                    }
+                    if (args[3].equalsIgnoreCase("~")) {
+                        args[3] = String.valueOf(entity.getLocation().getZ());
+                    }
+                }
+                double x = Double.parseDouble(args[1]);
+                double y = Double.parseDouble(args[2]);
+                double z = Double.parseDouble(args[3]);
+                int radius = Integer.parseInt(args[4]);
+                Location loc = new Location(Bukkit.getWorlds().get(0), x, y, z);
+
+                if (args.length == 6) {
+                    if (Bukkit.getWorld(args[5]) != null) {
+                        World world = Bukkit.getWorld(args[8]);
+                        loc.setWorld(world);
+                    } else {
+                        sender.sendMessage(Messages.error_world);
+                        return;
+                    }
+                }
+
+                for (chestLocation e : chestManager.getAllChestsInSpheroid(loc, radius)) {
+                    chestManager.randomize(e);
+                    counter++;
+                }
+                sender.sendMessage(Messages.randomizeall_success.replace("%amount%", String.valueOf(counter)));
+            } catch (NumberFormatException e) {
+                sender.sendMessage(Messages.error_number);
+            }
+        } else {
+            for (String e : Messages.randomizeall_help.split("\n")) {
+                sender.sendMessage(e);
             }
         }
-
-
-        for (ItemStack e : items) {
-            int slot = random.nextInt(27);
-            if (chestInv.getItem(slot) == null) {
-                chestInv.setItem(slot, e);
-            }
-        }
-
-        chest.update();
-        return true;
     }
 
     private boolean randomizeChest(Location loc, String dir, String group) {
-        char direction = dir.toLowerCase().trim().charAt(0);
-        int facing;
-
-        switch (direction) {
-            case 'n':
-                facing = 2;
-                break;
-            case 's':
-                facing = 3;
-                break;
-            case 'e':
-                facing = 5;
-                break;
-            case 'w':
-                facing = 4;
-                break;
-            default:
-                facing = -1;
-                break;
-        }
-
+        int facing = getDirection(dir);
         if (facing > 1) {
-            randomizeChest(loc, facing, group);
+            randomizeChest(loc, facing, group, pl);
             return true;
         } else {
             return randomizeChest(loc, "n", group);

@@ -7,7 +7,9 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class tabCompleter implements TabCompleter {
     private ChestRandomizer pl;
@@ -18,6 +20,7 @@ public class tabCompleter implements TabCompleter {
 
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> possible = new ArrayList<String>();
+        Map<String, String> map = new HashMap<String, String>();
         if (sender instanceof Player) {
             Player p = (Player) sender;
             if (args.length == 1) {
@@ -35,9 +38,19 @@ public class tabCompleter implements TabCompleter {
                     possible.add("updater");
                     possible.add("metrics");
                 }
+                if (sender.hasPermission("cr.randomizeall")) {
+                    possible.add("randomizeall");
+                }
                 return pl.possibilityChecker(possible, args[0]);
             } else if (args.length == 2) {
                 if (args[0].equalsIgnoreCase("r") || args[0].equalsIgnoreCase("randomize")) {
+                    for (String e : pl.getConfigManager().getGroupNames()) {
+                        if (sender.hasPermission("cr.randomize." + e)) {
+                            possible.add(e);
+                        }
+                    }
+                    return pl.possibilityChecker(possible, args[1]);
+                } else if (args[0].equalsIgnoreCase("randomizeall")) {
                     for (String e : pl.getConfigManager().getGroupNames()) {
                         if (sender.hasPermission("cr.randomize." + e)) {
                             possible.add(e);

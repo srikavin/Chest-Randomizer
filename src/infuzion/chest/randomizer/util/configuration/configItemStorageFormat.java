@@ -3,6 +3,8 @@ package infuzion.chest.randomizer.util.configuration;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.SerializableAs;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemStack;
@@ -13,7 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class configItemStorageFormat {
+@SerializableAs("ChestRandomizationItem")
+public class configItemStorageFormat implements ConfigurationSerializable {
     private String configValue;
     private Material item;
     private short data = 0;
@@ -22,6 +25,7 @@ public class configItemStorageFormat {
     private int amount = 1;
     private String lore = "";
     private ItemStack itemstack;
+    private String itemName = "";
     private Map<Enchantment, Integer> enchantmentMap = new HashMap<Enchantment, Integer>();
 
     public configItemStorageFormat(ItemStack itemStack, int percent) {
@@ -82,7 +86,51 @@ public class configItemStorageFormat {
             loreList.add(ChatColor.translateAlternateColorCodes('&', e).trim());
         }
         itemMeta.setLore(loreList);
+        itemMeta.setDisplayName(itemName);
         itemstack.setItemMeta(itemMeta);
+    }
+
+    public configItemStorageFormat(Map data) {
+        this.percent = (Integer) data.get("percent");
+        this.itemName = (String) data.get("name");
+        this.lore = (String) data.get("lore");
+        this.data = Short.parseShort(String.valueOf(data.get("data")));
+        this.item = Material.valueOf(String.valueOf(data.get("material")));
+        this.amount = (Integer) data.get("amount");
+        addEnchantments((String) data.get("enchantments"));
+        generateItem();
+    }
+
+    private void addEnchantments(String enchantments) {
+        if (enchantments.equalsIgnoreCase("none")) {
+            return;
+        }
+
+        int enchantmentLevel;
+        Enchantment enchantment;
+        int enchantmentID;
+
+        String[] enchantmentSplit = enchantments.split(",", 0); // enchant1,enchant2 -> [enchantname],[lvl]
+        for (String e : enchantmentSplit) {
+            try {
+                if (e.split(":", 2).length != 2) {
+                    throw new ArrayIndexOutOfBoundsException();
+                }
+
+                enchantment = Enchantment.getByName(e.split(":", 2)[0].toUpperCase());
+                enchantmentLevel = Integer.parseInt(e.split(":", 2)[1]);
+
+                if (enchantment == null) {
+                    enchantmentID = Integer.parseInt(e.split(":", 2)[0]);
+                    enchantment = new EnchantmentWrapper(enchantmentID);
+                }
+                enchantmentMap.put(enchantment, enchantmentLevel);
+            } catch (Exception err) {
+                Bukkit.getLogger().severe("Failed to read item enchant in config: " + e);
+                return;
+            }
+
+        }
     }
 
     configItemStorageFormat(String configValue) {
@@ -175,40 +223,12 @@ public class configItemStorageFormat {
         }
     }
 
-    private void addEnchantments(String enchantments) {
-        if (enchantments.equalsIgnoreCase("none")) {
-            return;
-        }
-
-        int enchantmentLevel;
-        Enchantment enchantment;
-        int enchantmentID;
-
-        String[] enchantmentSplit = enchantments.split(",", 0); // enchant1,enchant2 -> [enchantname],[lvl]
-        for (String e : enchantmentSplit) {
-            try {
-                if (e.split(":", 2).length != 2) {
-                    throw new ArrayIndexOutOfBoundsException();
-                }
-
-                enchantment = Enchantment.getByName(e.split(":", 2)[0].toUpperCase());
-                enchantmentLevel = Integer.parseInt(e.split(":", 2)[1]);
-
-                if (enchantment == null) {
-                    enchantmentID = Integer.parseInt(e.split(":", 2)[0]);
-                    enchantment = new EnchantmentWrapper(enchantmentID);
-                }
-                enchantmentMap.put(enchantment, enchantmentLevel);
-            } catch (Exception err) {
-                Bukkit.getLogger().severe("Failed to read item enchant in config: " + e);
-                return;
-            }
-
-        }
-    }
-
     private void addLore(String lore) {
         this.lore = lore;
+    }
+
+    public static configItemStorageFormat deserialize(Map data) {
+        return new configItemStorageFormat(data);
     }
 
     public ItemStack getItem() {
@@ -221,6 +241,33 @@ public class configItemStorageFormat {
 
     boolean hasError() {
         return error;
+    }
+
+    public Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<String, Object>();
+        generateItem();
+        map.put("name", itemName);
+        map.put("material", item.toString());
+        map.put("data", data);
+        map.put("lore", lore);
+        map.put("amount", amount);
+        String enchantments = "";
+        for (Enchantment e : enchantmentMap.keySet()) {
+            if (enchantments.equalsIgnoreCase("")) {
+                enchantments += e.getName() + ":" + enchantmentMap.get(e);
+
+            } else {
+                enchantments += "," + e.getName() + ":" + enchantmentMap.get(e);
+            }
+        }
+
+        if (enchantments.equalsIgnoreCase("")) {
+            enchantments = "none";
+        }
+
+        map.put("enchantments", enchantments);
+        map.put("percent", percent);
+        return map;
     }
 
     @Override
