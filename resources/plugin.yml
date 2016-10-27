@@ -1,6 +1,6 @@
 name: ChestRandomizer
 author: Infuzion
-version: 3.5
+version: 3.5.1
 database: false
 
 main: infuzion.chest.randomizer.ChestRandomizer

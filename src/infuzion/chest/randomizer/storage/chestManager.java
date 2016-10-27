@@ -5,11 +5,7 @@ import infuzion.chest.randomizer.ChestRandomizer;
 import infuzion.chest.randomizer.command.CommandMain;
 import infuzion.chest.randomizer.util.Direction;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Chest;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -162,10 +158,6 @@ public class chestManager {
     }
 
     public void randomize(chestLocation chestLocation) {
-        if (chestLocation.getBlock().getType().equals(Material.CHEST)) {
-            Inventory chest = ((Chest) chestLocation.getBlock().getState()).getBlockInventory();
-            chest.setContents(new ItemStack[]{});
-        }
         CommandMain.randomizeChest(chestLocation, chestLocation.getDir(), chestLocation.getGroup(), pl);
     }
 
