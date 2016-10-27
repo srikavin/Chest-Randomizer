@@ -5,7 +5,6 @@ import infuzion.chest.randomizer.event.*;
 import infuzion.chest.randomizer.storage.chestLocation;
 import infuzion.chest.randomizer.storage.chestManager;
 import infuzion.chest.randomizer.util.Metrics;
-import infuzion.chest.randomizer.util.Updater;
 import infuzion.chest.randomizer.util.configuration.configItemStorageFormat;
 import infuzion.chest.randomizer.util.configuration.configManager;
 import infuzion.chest.randomizer.util.messages.Messages;
@@ -15,6 +14,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.inventivetalent.update.spiget.SpigetUpdate;
+import org.inventivetalent.update.spiget.UpdateCallback;
 
 import java.io.IOException;
 import java.util.*;
@@ -138,14 +139,20 @@ public class ChestRandomizer extends JavaPlugin {
             }
         }
         if (!(getConfig().getBoolean("ChestRandomizer.Updater.Opt-Out"))) {
-            startUpdater();
+            final SpigetUpdate updater = new SpigetUpdate(this, 30534);
+            updater.checkForUpdate(new UpdateCallback() {
+                public void updateAvailable(String newVersion, String downloadUrl, boolean hasDirectDownload) {
+                    if (hasDirectDownload) {
+                        updater.downloadUpdate();
+                    }
+                }
+
+                public void upToDate() {
+                }
+            });
         }
         verifyConfirmations();
 
-    }
-
-    public void startUpdater() {
-        new Updater(this, 83511, this.getFile(), Updater.UpdateType.DEFAULT, true);
     }
 
     private void verifyConfirmations() {
