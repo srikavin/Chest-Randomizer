@@ -90,10 +90,6 @@ public class configManager {
         config.options().header(createHeader(new String[]{"",
                 "ChestRandomizer v" + pl.getVersion(),
                 "",
-                "Format: [Percent] [ItemName]{:Data} {amount} {enchant},{enchant2} {lore}  []: Required {}:Optional",
-                " ",
-                "Example: 48% wool:1 PROTECTION_ENVIRONMENTAL  48% chance of enchanted wool",
-                " ",
                 "Refer to: http://www.minecraftinfo.com/idnamelist.htm for item names",
                 "Refer to: https://docs.oc.tc/reference/enchantments for enchantment names (use Bukkit name)",
                 "",
@@ -311,6 +307,7 @@ public class configManager {
 
     public void reload() {
         config = pl.getConfig();
+
         initGroupList();
     }
 

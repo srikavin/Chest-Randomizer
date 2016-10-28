@@ -162,9 +162,12 @@ public class chestManager {
     }
 
     public void removeChest(Location location) {
-        for (chestLocation e : chests) {
-            if (e.similar(location)) {
-                chests.remove(e);
+        Iterator<chestLocation> chestLocationIterator = chests.iterator();
+        while (chestLocationIterator.hasNext()) {
+            chestLocation loc = chestLocationIterator.next();
+            if (loc.similar(location)) {
+                chestLocationIterator.remove();
+                return;
             }
         }
     }

@@ -79,7 +79,7 @@ public class CommandMain implements CommandExecutor {
                     ritems = min;
                 }
 
-                List<ItemStack> items = new ArrayList<ItemStack>();
+                final List<ItemStack> items = new ArrayList<ItemStack>();
 
                 final int toAddSize = toAdd.size();
                 for (int i = 0; i < ritems; i += 0) {
@@ -93,15 +93,18 @@ public class CommandMain implements CommandExecutor {
                     }
                 }
 
-
-                for (ItemStack e : items) {
-                    int slot = random.nextInt(27);
-                    if (chestInv.getItem(slot) == null) {
-                        chestInv.setItem(slot, e);
-                    } else if (e != null) {
-                        chestInv.addItem(e);
+                new BukkitRunnable() {
+                    public void run() {
+                        for (ItemStack e : items) {
+                            int slot = random.nextInt(27);
+                            if (chestInv.getItem(slot) == null) {
+                                chestInv.setItem(slot, e);
+                            } else if (e != null) {
+                                chestInv.addItem(e);
+                            }
+                        }
                     }
-                }
+                }.runTaskLater(pl, 0);
             }
         }.runTaskAsynchronously(pl);
         return true;
@@ -248,6 +251,14 @@ public class CommandMain implements CommandExecutor {
                 return true;
             }
             pl.reloadConfig();
+            max = pl.getConfig().getInt("ChestRandomizer.RandomizerSettings.MaximumItems");
+            min = pl.getConfig().getInt("ChestRandomizer.RandomizerSettings.MinimumItems");
+            if (max < 0) {
+                max = 0;
+            }
+            if (min < 0) {
+                min = 0;
+            }
             sender.sendMessage(Messages.reload_success);
             return true;
         } else if (args[0].equalsIgnoreCase("randomizeall")) {
@@ -454,6 +465,9 @@ public class CommandMain implements CommandExecutor {
                 chestManager.randomize(e);
                 counter[0]++;
             }
+            if (!recursive) {
+                sender.sendMessage(Messages.randomizeall_success.replace("%amount%", String.valueOf(counter[0])));
+            }
         } else {
             final int listSize = list.size();
             new BukkitRunnable() {
@@ -464,7 +478,7 @@ public class CommandMain implements CommandExecutor {
                         sender.sendMessage(Messages.randomizeall_success.replace("%amount%", String.valueOf(listSize)));
                     }
                 }
-            }.runTaskLater(pl, 4);
+            }.runTaskLater(pl, 0);
         }
         return counter[0];
     }
