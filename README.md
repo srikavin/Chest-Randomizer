@@ -2,4 +2,4 @@ Chest-Randomizer [![Build Status](https://travis-ci.org/Infuzion/Chest-Randomize
 ================
 https://dev.bukkit.org/bukkit-plugins/chest-randomizer/
 
-A minecraft server-mod that allows you to randomize the contents of a chest.
+A minecraft server-mod that allows you to randomize the contents of a chest. 
