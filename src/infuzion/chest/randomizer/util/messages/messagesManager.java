@@ -15,14 +15,14 @@ public class messagesManager {
     private File messagesFile;
     private FileConfiguration messagesConfig;
 
-    public messagesManager (ChestRandomizer pl) {
+    public messagesManager(ChestRandomizer pl) {
         this.pl = pl;
         messagesFile = new File(pl.getDataFolder(), "messages.yml");
         messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
         init();
     }
 
-    private void init () {
+    private void init() {
         messagesConfig.options().header(configManager.createHeader(new String[]{"",
                 "ChestRandomizer v" + pl.getVersion() + " Message Config:",
                 "%prefix% - Adds the customizable prefix in place of this",
