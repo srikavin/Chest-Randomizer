@@ -23,7 +23,7 @@ public class chestLocation extends Location implements ConfigurationSerializable
 
 
     public chestLocation(String world, double x, double y, double z, int direction, String group) {
-        this(world, x, y, z, Direction.valueOf(direction), group);
+        this(world, x, y, z, Direction.fromInt(direction), group);
     }
 
     public chestLocation(String world, double x, double y, double z, Direction dir, String group) {
@@ -37,7 +37,7 @@ public class chestLocation extends Location implements ConfigurationSerializable
         double x = (Double) args.get("x");
         double y = (Double) args.get("y");
         double z = (Double) args.get("z");
-        Direction direction = Direction.valueOf((Integer) args.get("dir"));
+        Direction direction = Direction.fromInt((Integer) args.get("dir"));
         String group = (String) args.get("group");
 
         return new chestLocation(world, x, y, z, direction, group);
@@ -79,17 +79,7 @@ public class chestLocation extends Location implements ConfigurationSerializable
         return result;
     }
 
-    @SuppressWarnings("RedundantIfStatement")
     public boolean similar(Location location) {
-        if (location.getBlockX() != this.getBlockX()) {
-            return false;
-        }
-        if (location.getBlockY() != this.getBlockY()) {
-            return false;
-        }
-        if (location.getBlockZ() != this.getBlockZ()) {
-            return false;
-        }
-        return true;
+        return location.getBlockX() == this.getBlockX() && location.getBlockY() == this.getBlockY() && location.getBlockZ() == this.getBlockZ();
     }
 }

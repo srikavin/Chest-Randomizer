@@ -7,7 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.ServerCommandEvent;
 
-import java.util.HashMap;
+import java.util.Map;
 
 public class onConsoleCommand implements Listener {
 
@@ -22,7 +22,7 @@ public class onConsoleCommand implements Listener {
         if (event.getCommand().equalsIgnoreCase("confirm")) {
             CommandSender sender = event.getSender();
             if (plugin.getConfirmations().containsKey(sender)) {
-                HashMap<CommandSender, Integer> confirmations = plugin.getConfirmations();
+                Map<CommandSender, Integer> confirmations = plugin.getConfirmations();
                 confirmations.remove(event.getSender());
                 plugin.setConfirmations(confirmations);
                 String group = plugin.getConfirmationGroups(sender);

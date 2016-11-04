@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @SerializableAs("ChestRandomizationItem")
-public class configItemStorageFormat implements ConfigurationSerializable {
+public class chestRandomizationItem implements ConfigurationSerializable {
     private String configValue;
     private Material item;
     private short data = 0;
@@ -28,7 +28,7 @@ public class configItemStorageFormat implements ConfigurationSerializable {
     private String itemName = "";
     private Map<Enchantment, Integer> enchantmentMap = new HashMap<Enchantment, Integer>();
 
-    public configItemStorageFormat(ItemStack itemStack, int percent) {
+    public chestRandomizationItem(ItemStack itemStack, int percent) {
         this.itemstack = itemStack;
         this.percent = percent;
         ItemMeta itemMeta = itemStack.getItemMeta();
@@ -49,6 +49,20 @@ public class configItemStorageFormat implements ConfigurationSerializable {
     }
 
     private void setConfigValue() {
+        generateItem();
+        ItemMeta itemMeta = this.itemstack.getItemMeta();
+
+        String loreToReturn = "";
+        if (itemMeta.hasLore()) {
+            for (String e : itemMeta.getLore()) {
+                loreToReturn += e.replaceAll("§", "&") + "||";
+            }
+        }
+
+        this.configValue = percent + "% " + item.toString() + ":" + data + " " + amount + " " + getEnchantmentsAsString() + " " + loreToReturn;
+    }
+
+    private String getEnchantmentsAsString() {
         String enchantments = "";
 
         for (Enchantment e : enchantmentMap.keySet()) {
@@ -63,17 +77,7 @@ public class configItemStorageFormat implements ConfigurationSerializable {
         if (enchantments.equalsIgnoreCase("")) {
             enchantments = "none";
         }
-        generateItem();
-        ItemMeta itemMeta = this.itemstack.getItemMeta();
-
-        String loreToReturn = "";
-        if (itemMeta.hasLore()) {
-            for (String e : itemMeta.getLore()) {
-                loreToReturn += e.replaceAll("§", "&") + "||";
-            }
-        }
-
-        this.configValue = percent + "% " + item.toString() + ":" + data + " " + amount + " " + enchantments + " " + loreToReturn;
+        return enchantments;
     }
 
     private void generateItem() {
@@ -90,7 +94,8 @@ public class configItemStorageFormat implements ConfigurationSerializable {
         itemstack.setItemMeta(itemMeta);
     }
 
-    public configItemStorageFormat(Map data) {
+    @SuppressWarnings("WeakerAccess")
+    public chestRandomizationItem(Map data) {
         this.percent = (Integer) data.get("percent");
         this.itemName = (String) data.get("name");
         this.lore = (String) data.get("lore");
@@ -133,11 +138,11 @@ public class configItemStorageFormat implements ConfigurationSerializable {
         }
     }
 
-    configItemStorageFormat(String configValue) {
+    chestRandomizationItem(String configValue) {
         this(configValue, false);
     }
 
-    configItemStorageFormat(String configValue, boolean old) {
+    chestRandomizationItem(String configValue, boolean old) {
         String[] split = configValue.trim().split(" ", 5);
         if (split.length < 2) {
             Bukkit.getLogger().severe("Failed to read config line: " + configValue);
@@ -227,8 +232,9 @@ public class configItemStorageFormat implements ConfigurationSerializable {
         this.lore = lore;
     }
 
-    public static configItemStorageFormat deserialize(Map data) {
-        return new configItemStorageFormat(data);
+    @SuppressWarnings("unused")
+    public static chestRandomizationItem deserialize(Map data) {
+        return new chestRandomizationItem(data);
     }
 
     public ItemStack getItem() {
@@ -251,21 +257,8 @@ public class configItemStorageFormat implements ConfigurationSerializable {
         map.put("data", data);
         map.put("lore", lore);
         map.put("amount", amount);
-        String enchantments = "";
-        for (Enchantment e : enchantmentMap.keySet()) {
-            if (enchantments.equalsIgnoreCase("")) {
-                enchantments += e.getName() + ":" + enchantmentMap.get(e);
 
-            } else {
-                enchantments += "," + e.getName() + ":" + enchantmentMap.get(e);
-            }
-        }
-
-        if (enchantments.equalsIgnoreCase("")) {
-            enchantments = "none";
-        }
-
-        map.put("enchantments", enchantments);
+        map.put("enchantments", getEnchantmentsAsString());
         map.put("percent", percent);
         return map;
     }

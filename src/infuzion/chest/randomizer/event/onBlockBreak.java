@@ -1,7 +1,6 @@
 package infuzion.chest.randomizer.event;
 
 import infuzion.chest.randomizer.ChestRandomizer;
-import infuzion.chest.randomizer.storage.chestManager;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -10,7 +9,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 
 public class onBlockBreak implements Listener {
     private ChestRandomizer plugin;
-    private chestManager chestManager;
+    private infuzion.chest.randomizer.storage.chestManager chestManager;
 
     public onBlockBreak(ChestRandomizer plugin) {
         this.plugin = plugin;

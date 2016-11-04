@@ -1,92 +1,55 @@
 package infuzion.chest.randomizer.storage;
 
-import com.google.common.io.Files;
 import infuzion.chest.randomizer.ChestRandomizer;
 import infuzion.chest.randomizer.command.CommandMain;
 import infuzion.chest.randomizer.util.Direction;
 import org.bukkit.Location;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
-@SuppressWarnings("unchecked")
-public class chestManager {
-    private final ChestRandomizer pl;
-    private final List<chestLocation> chests;
-    private final YamlConfiguration chestConfig;
-    private final File chestConfigFile;
-    private BukkitTask runnable;
-//    private long lastBackup = 0;
+public abstract class chestManager {
+    final List<chestLocation> chests = Collections.synchronizedList(new LinkedList<chestLocation>());
+    protected ChestRandomizer plugin;
 
-    public chestManager(ChestRandomizer pl) {
-        this.pl = pl;
-        chestConfigFile = new File(pl.getDataFolder(), "chests.yml");
-        chestConfig = YamlConfiguration.loadConfiguration(chestConfigFile);
-        chests = new ArrayList<chestLocation>();
-        init();
+    chestManager(ChestRandomizer plugin) {
+        this.plugin = plugin;
     }
 
     public void addChest(Location location, Direction direction, String group) {
+        if (containsChest(location)) {
+            removeChest(location);
+        }
         chests.add(new chestLocation(location, direction, group));
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void backup() {
-        if (pl.getConfigManager().getBoolean("disableAutoBackup")) {
-            return;
-        }
-        Calendar cal = Calendar.getInstance();
-        long curTime = cal.getTimeInMillis();
-//        if((curTime - lastBackup) > 600000){
-        try {
-//            lastBackup = curTime;
-            File directory = new File(chestConfigFile.getParentFile(), "backup");
-            directory.mkdir();
-            Files.copy(chestConfigFile, new File(directory, "chests_" + curTime + "_backup.yml"));
-            File[] files = directory.listFiles();
-            if (files != null) {
-                if (files.length > 25) {
-                    Arrays.sort(files, new Comparator<File>() {
-                        public int compare(File f1, File f2) {
-                            return -Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
-                        }
-                    });
-
-                    for (int i = 24; i < files.length; i++) {
-                        files[i].delete();
-                    }
-                }
-            }
-
-        } catch (IOException e) {
-            pl.getLogger().severe("chests.yml auto backup failed!");
-        }
-//        }
-    }
-
-    public void cleanUp() {
-        if (runnable != null) {
-            runnable.cancel();
-        }
-        save();
-        saveFile(false);
-    }
-
     public boolean containsChest(Location location) {
-        for (chestLocation e : chests) {
-            if (e.similar(location)) {
-                return true;
+        synchronized (chests) {
+            for (chestLocation e : chests) {
+                if (e.similar(location)) {
+                    return true;
+                }
             }
         }
         return false;
     }
 
+    public void removeChest(Location location) {
+        synchronized (chests) {
+            Iterator<chestLocation> chestLocationIterator = chests.iterator();
+            while (chestLocationIterator.hasNext()) {
+                chestLocation loc = chestLocationIterator.next();
+                if (loc.similar(location)) {
+                    chestLocationIterator.remove();
+                    return;
+                }
+            }
+        }
+    }
+
+    public abstract void cleanUp();
+
     public List<chestLocation> getAllChests() {
-        return chests;
+        return Collections.unmodifiableList(chests);
     }
 
     public List<chestLocation> getAllChestsInCuboid(Location l1, Location l2) {
@@ -109,9 +72,11 @@ public class chestManager {
 
     public List<chestLocation> getAllChestsInGroup(String group) {
         List<chestLocation> ret = new ArrayList<chestLocation>();
-        for (chestLocation e : chests) {
-            if (e.getGroup().equalsIgnoreCase(group)) {
-                ret.add(e);
+        synchronized (chests) {
+            for (chestLocation e : chests) {
+                if (e.getGroup().equalsIgnoreCase(group)) {
+                    ret.add(e);
+                }
             }
         }
         return ret;
@@ -119,96 +84,20 @@ public class chestManager {
 
     public List<chestLocation> getAllChestsInSpheroid(Location center, int radius) {
         List<chestLocation> ret = new ArrayList<chestLocation>();
-        for (chestLocation e : chests) {
-            if (e.isInSpheroid(center, radius)) {
-                ret.add(e);
+        synchronized (chests) {
+            for (chestLocation e : chests) {
+                if (e.isInSpheroid(center, radius)) {
+                    ret.add(e);
+                }
             }
         }
         return ret;
     }
 
-    private void init() {
-        chestConfig.options().header("DO NOT EDIT THIS FILE UNLESS YOU KNOW WHAT YOU ARE DOING\n" +
-                "Changes made can be deleted if the server is running\n" +
-                "ANY ERRORS IN THE YML FORMAT CAN RESULT IN COMPLETE DESTRUCTION OF THIS FILE");
-        chestConfig.addDefault("1", "1");
-        chestConfig.options().copyDefaults(true);
-        saveFile();
-        load();
-        backup();
-        runnable = new BukkitRunnable() {
-            public void run() {
-                save();
-                saveFile();
-                backup();
-            }
-        }.runTaskTimer(pl, 1200L, 1200);
-
-    }
-
-    private void load() {
-        if (!chestConfig.isConfigurationSection("ChestRandomizer")) {
-            return;
-        }
-        for (String groupName : chestConfig.getConfigurationSection("ChestRandomizer").getValues(false).keySet()) {
-            for (chestLocation location : (List<chestLocation>) chestConfig.getList("ChestRandomizer." + groupName)) {
-                chests.add(location);
-            }
-        }
-    }
-
     public void randomize(chestLocation chestLocation) {
-        CommandMain.randomizeChest(chestLocation, chestLocation.getDir(), chestLocation.getGroup(), pl);
+        CommandMain.randomizeChest(chestLocation, chestLocation.getDir(), chestLocation.getGroup(), plugin);
     }
 
-    public void removeChest(Location location) {
-        Iterator<chestLocation> chestLocationIterator = chests.iterator();
-        while (chestLocationIterator.hasNext()) {
-            chestLocation loc = chestLocationIterator.next();
-            if (loc.similar(location)) {
-                chestLocationIterator.remove();
-                return;
-            }
-        }
-    }
+    abstract void save();
 
-    private void save() {
-        Map<String, List<chestLocation>> groups = new HashMap<String, List<chestLocation>>();
-        for (chestLocation e : chests) {
-            String groupName = e.getGroup();
-            List list;
-            if (groups.containsKey(groupName)) {
-                list = groups.get(groupName);
-            } else {
-                list = new ArrayList<chestLocation>();
-            }
-
-            list.add(e);
-            groups.put(groupName, list);
-        }
-
-        for (String groupName : groups.keySet()) {
-            chestConfig.set("ChestRandomizer." + groupName, groups.get(groupName));
-        }
-    }
-
-    private void saveFile() {
-        saveFile(true);
-    }
-
-    private void saveFile(boolean async) {
-        if (!async) {
-            try {
-                chestConfig.save(chestConfigFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            new BukkitRunnable() {
-                public void run() {
-                    saveFile(false);
-                }
-            }.runTaskAsynchronously(pl);
-        }
-    }
 }
