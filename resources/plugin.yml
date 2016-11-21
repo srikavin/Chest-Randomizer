@@ -1,7 +1,7 @@
 name: ChestRandomizer
 author: Infuzion
 version: 3.5.2
-database: true
+database: false
 
 main: infuzion.chest.randomizer.ChestRandomizer
 description: A plugin that allows the randomization of chests for minigames such as Hunger games, Walls, and skywars.

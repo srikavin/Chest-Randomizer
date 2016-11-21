@@ -17,6 +17,7 @@ public class databaseChestManager extends chestManager {
 
     private final List<Location> toDelete = Collections.synchronizedList(new LinkedList<Location>());
     private final List<chestLocation> toCreate = Collections.synchronizedList(new LinkedList<chestLocation>());
+    private final List<chestLocation> changed = Collections.synchronizedList(new LinkedList<chestLocation>());
     private Connection connection;
     private BukkitRunnable save;
     private String fullTableName;
@@ -107,9 +108,6 @@ public class databaseChestManager extends chestManager {
     private void saveToDataBase(boolean force) {
         if (force) {
             try {
-                long b = System.currentTimeMillis();
-                System.out.println(b);
-                connection.setAutoCommit(false);
                 synchronized (toDelete) {
                     PreparedStatement pS = connection.prepareStatement("DELETE FROM " + fullTableName +
                             " WHERE x_location = ? AND y_location = ? AND z_location = ?");
@@ -139,29 +137,6 @@ public class databaseChestManager extends chestManager {
                     pS.executeBatch();
                     toCreate.clear();
                 }
-                synchronized (chests) {
-                    PreparedStatement saveStatement = connection.prepareStatement("" +
-                            "UPDATE " + fullTableName + " SET " +
-                            "`group` = ?, direction = ? WHERE " +
-                            "x_location = ? AND y_location = ? AND z_location = ? AND world = ?");
-                    for (chestLocation chest : chests) {
-                        saveStatement.setString(1, chest.getGroup());
-                        saveStatement.setInt(2, chest.getDir());
-                        saveStatement.setInt(3, chest.getBlockX());
-                        saveStatement.setInt(4, chest.getBlockY());
-                        saveStatement.setInt(5, chest.getBlockZ());
-                        saveStatement.setString(6, chest.getWorld().getName());
-                        saveStatement.addBatch();
-                    }
-                    saveStatement.executeBatch();
-                }
-                long a = System.currentTimeMillis();
-                connection.commit();
-                long c = System.currentTimeMillis();
-                connection.setAutoCommit(true);
-                System.out.println(a);
-                System.out.println("Time Total: " + String.valueOf(a - b));
-                System.out.println("Time 2: " + String.valueOf(c - a));
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -172,6 +147,7 @@ public class databaseChestManager extends chestManager {
             saveScheduled = true;
             save = new BukkitRunnable() {
                 public void run() {
+                    Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
                     saveToDataBase(true);
                     saveScheduled = false;
                 }
