@@ -5,6 +5,22 @@
     <groupId>groupId</groupId>
     <artifactId>ChestRandomizer</artifactId>
     <version>3</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <properties>
+        <source>1.7</source>
+        <target>1.7</target>
+    </properties>
     <repositories>
         <repository>
             <id>spigot-repo</id>
@@ -19,7 +35,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.10.2-R0.1-SNAPSHOT</version>
+            <version>1.11-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

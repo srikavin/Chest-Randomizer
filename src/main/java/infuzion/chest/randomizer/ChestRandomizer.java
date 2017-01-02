@@ -2,14 +2,16 @@ package infuzion.chest.randomizer;
 
 import infuzion.chest.randomizer.command.CommandMain;
 import infuzion.chest.randomizer.event.*;
-import infuzion.chest.randomizer.storage.chestLocation;
-import infuzion.chest.randomizer.storage.databaseChestManager;
-import infuzion.chest.randomizer.storage.fileChestManager;
+import infuzion.chest.randomizer.storage.ChestLocation;
+import infuzion.chest.randomizer.storage.ChestManager;
+import infuzion.chest.randomizer.storage.DatabaseChestManager;
+import infuzion.chest.randomizer.storage.FileChestManager;
+import infuzion.chest.randomizer.util.BlockFaceWrapper;
 import infuzion.chest.randomizer.util.Metrics;
-import infuzion.chest.randomizer.util.configuration.chestRandomizationItem;
-import infuzion.chest.randomizer.util.configuration.configManager;
+import infuzion.chest.randomizer.util.configuration.ChestRandomizationItem;
+import infuzion.chest.randomizer.util.configuration.ConfigManager;
 import infuzion.chest.randomizer.util.messages.Messages;
-import infuzion.chest.randomizer.util.messages.messagesManager;
+import infuzion.chest.randomizer.util.messages.MessagesManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -28,24 +30,24 @@ public class ChestRandomizer extends JavaPlugin {
 
     @SuppressWarnings("FieldCanBeLocal")
     private final double version = 3.5d;
-    private final Map<CommandSender, String> confirmationGroups = new HashMap<CommandSender, String>();
-    private messagesManager messagesManager;
-    private configManager configManager;
-    private infuzion.chest.randomizer.storage.chestManager chestManager;
+    private final Map<CommandSender, String> confirmationGroups = new HashMap<>();
+    private MessagesManager messagesManager;
+    private ConfigManager configManager;
+    private ChestManager chestManager;
     private Random random;
     private String prefix;
     private java.sql.Connection connection;
-    private Map<CommandSender, Integer> confirmations = new HashMap<CommandSender, Integer>();
+    private Map<CommandSender, Integer> confirmations = new HashMap<>();
 
     public void addToConfirmationGroups(CommandSender commandSender, String string) {
         confirmationGroups.put(commandSender, string);
     }
 
-    public infuzion.chest.randomizer.storage.chestManager getChestManager() {
+    public ChestManager getChestManager() {
         return chestManager;
     }
 
-    public configManager getConfigManager() {
+    public ConfigManager getConfigManager() {
         return configManager;
     }
 
@@ -53,7 +55,7 @@ public class ChestRandomizer extends JavaPlugin {
         return confirmationGroups.get(commandSender);
     }
 
-    public messagesManager getMessagesManager() {
+    public MessagesManager getMessagesManager() {
         return messagesManager;
     }
 
@@ -66,7 +68,7 @@ public class ChestRandomizer extends JavaPlugin {
     }
 
     public List<String> possibilityChecker(List<String> possible, String toCompare) {
-        List<String> toReturn = new ArrayList<String>();
+        List<String> toReturn = new ArrayList<>();
         if (toCompare.trim().equalsIgnoreCase("")) {
             toReturn.addAll(possible);
         } else {
@@ -114,15 +116,16 @@ public class ChestRandomizer extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        ConfigurationSerialization.registerClass(chestRandomizationItem.class, "ChestRandomizationItem");
-        ConfigurationSerialization.registerClass(chestLocation.class, "CRChestLocation");
+        ConfigurationSerialization.registerClass(ChestRandomizationItem.class, "ChestRandomizationItem");
+        ConfigurationSerialization.registerClass(ChestLocation.class, "CRChestLocation");
+        ConfigurationSerialization.registerClass(BlockFaceWrapper.class, "CRBlockFaceDirection");
 
-        messagesManager = new messagesManager(this);
+        messagesManager = new MessagesManager(this);
         new Messages(this);
 
         prefix = Messages.variable_prefix;
 
-        configManager = new configManager(this);
+        configManager = new ConfigManager(this);
         if (configManager.getBoolean("DataBase.using")) {
             int port = getConfig().getInt("ChestRandomizer.DataBase.port");
             String host = getConfig().getString("ChestRandomizer.DataBase.host");
@@ -132,14 +135,14 @@ public class ChestRandomizer extends JavaPlugin {
             String database = getConfig().getString("ChestRandomizer.DataBase.database");
             String table = getConfig().getString("ChestRandomizer.DataBase.tableName");
             if (openConnection(driver, host, port, database, user, pass)) {
-                chestManager = new databaseChestManager(this, connection, database, table);
+                chestManager = new DatabaseChestManager(this, connection, database, table);
                 getLogger().info("Using database storage for chests.");
             } else {
-                chestManager = new fileChestManager(this);
+                chestManager = new FileChestManager(this);
                 getLogger().info("Using yml storage for chests.");
             }
         } else {
-            chestManager = new fileChestManager(this);
+            chestManager = new FileChestManager(this);
             getLogger().info("Using yml storage for chests.");
         }
 
@@ -190,13 +193,11 @@ public class ChestRandomizer extends JavaPlugin {
                     return false;
                 }
                 Class.forName(driver);
+                getLogger().severe("jdbc:mysql://" + host + ":" + port + "/" + database);
                 connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database, username, password);
                 return true;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        } catch (ClassNotFoundException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
             return false;
         }

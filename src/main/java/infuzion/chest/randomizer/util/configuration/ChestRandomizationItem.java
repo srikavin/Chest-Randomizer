@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @SerializableAs("ChestRandomizationItem")
-public class chestRandomizationItem implements ConfigurationSerializable {
+public class ChestRandomizationItem implements ConfigurationSerializable {
     private String configValue;
     private Material item;
     private short data = 0;
@@ -26,9 +26,10 @@ public class chestRandomizationItem implements ConfigurationSerializable {
     private String lore = "";
     private ItemStack itemstack;
     private String itemName = "";
-    private Map<Enchantment, Integer> enchantmentMap = new HashMap<Enchantment, Integer>();
+    private Map<Enchantment, Integer> enchantmentMap = new HashMap<>();
 
-    public chestRandomizationItem(ItemStack itemStack, int percent) {
+
+    public ChestRandomizationItem(ItemStack itemStack, int percent) {
         this.itemstack = itemStack;
         this.percent = percent;
         ItemMeta itemMeta = itemStack.getItemMeta();
@@ -48,54 +49,8 @@ public class chestRandomizationItem implements ConfigurationSerializable {
         setConfigValue();
     }
 
-    private void setConfigValue() {
-        generateItem();
-        ItemMeta itemMeta = this.itemstack.getItemMeta();
-
-        String loreToReturn = "";
-        if (itemMeta.hasLore()) {
-            for (String e : itemMeta.getLore()) {
-                loreToReturn += e.replaceAll("§", "&") + "||";
-            }
-        }
-
-        this.configValue = percent + "% " + item.toString() + ":" + data + " " + amount + " " + getEnchantmentsAsString() + " " + loreToReturn;
-    }
-
-    private String getEnchantmentsAsString() {
-        String enchantments = "";
-
-        for (Enchantment e : enchantmentMap.keySet()) {
-            if (enchantments.equalsIgnoreCase("")) {
-                enchantments += e.getName() + ":" + enchantmentMap.get(e);
-
-            } else {
-                enchantments += "," + e.getName() + ":" + enchantmentMap.get(e);
-            }
-        }
-
-        if (enchantments.equalsIgnoreCase("")) {
-            enchantments = "none";
-        }
-        return enchantments;
-    }
-
-    private void generateItem() {
-        itemstack = new ItemStack(item, amount, data);
-        itemstack.addUnsafeEnchantments(enchantmentMap);
-        ItemMeta itemMeta = itemstack.getItemMeta();
-        String[] loreArray = lore.split("\\|\\|");
-        List<String> loreList = new ArrayList<String>();
-        for (String e : loreArray) {
-            loreList.add(ChatColor.translateAlternateColorCodes('&', e).trim());
-        }
-        itemMeta.setLore(loreList);
-        itemMeta.setDisplayName(itemName);
-        itemstack.setItemMeta(itemMeta);
-    }
-
     @SuppressWarnings("WeakerAccess")
-    public chestRandomizationItem(Map data) {
+    public ChestRandomizationItem(Map data) {
         this.percent = (Integer) data.get("percent");
         this.itemName = (String) data.get("name");
         this.lore = (String) data.get("lore");
@@ -106,43 +61,11 @@ public class chestRandomizationItem implements ConfigurationSerializable {
         generateItem();
     }
 
-    private void addEnchantments(String enchantments) {
-        if (enchantments.equalsIgnoreCase("none")) {
-            return;
-        }
-
-        int enchantmentLevel;
-        Enchantment enchantment;
-        int enchantmentID;
-
-        String[] enchantmentSplit = enchantments.split(",", 0); // enchant1,enchant2 -> [enchantname],[lvl]
-        for (String e : enchantmentSplit) {
-            try {
-                if (e.split(":", 2).length != 2) {
-                    throw new ArrayIndexOutOfBoundsException();
-                }
-
-                enchantment = Enchantment.getByName(e.split(":", 2)[0].toUpperCase());
-                enchantmentLevel = Integer.parseInt(e.split(":", 2)[1]);
-
-                if (enchantment == null) {
-                    enchantmentID = Integer.parseInt(e.split(":", 2)[0]);
-                    enchantment = new EnchantmentWrapper(enchantmentID);
-                }
-                enchantmentMap.put(enchantment, enchantmentLevel);
-            } catch (Exception err) {
-                Bukkit.getLogger().severe("Failed to read item enchant in config: " + e);
-                return;
-            }
-
-        }
-    }
-
-    chestRandomizationItem(String configValue) {
+    ChestRandomizationItem(String configValue) {
         this(configValue, false);
     }
 
-    chestRandomizationItem(String configValue, boolean old) {
+    ChestRandomizationItem(String configValue, boolean old) {
         String[] split = configValue.trim().split(" ", 5);
         if (split.length < 2) {
             Bukkit.getLogger().severe("Failed to read config line: " + configValue);
@@ -220,6 +143,89 @@ public class chestRandomizationItem implements ConfigurationSerializable {
         setConfigValue();
     }
 
+    @SuppressWarnings("unused")
+    public static ChestRandomizationItem deserialize(Map data) {
+        return new ChestRandomizationItem(data);
+    }
+
+    private void setConfigValue() {
+        generateItem();
+        ItemMeta itemMeta = this.itemstack.getItemMeta();
+
+        String loreToReturn = "";
+        if (itemMeta.hasLore()) {
+            for (String e : itemMeta.getLore()) {
+                loreToReturn += e.replaceAll("§", "&") + "||";
+            }
+        }
+
+        this.configValue = percent + "% " + item.toString() + ":" + data + " " + amount + " " + getEnchantmentsAsString() + " " + loreToReturn;
+    }
+
+    private String getEnchantmentsAsString() {
+        String enchantments = "";
+
+        for (Enchantment e : enchantmentMap.keySet()) {
+            if (enchantments.equalsIgnoreCase("")) {
+                enchantments += e.getName() + ":" + enchantmentMap.get(e);
+
+            } else {
+                enchantments += "," + e.getName() + ":" + enchantmentMap.get(e);
+            }
+        }
+
+        if (enchantments.equalsIgnoreCase("")) {
+            enchantments = "none";
+        }
+        return enchantments;
+    }
+
+    private void generateItem() {
+        itemstack = new ItemStack(item, amount, data);
+        itemstack.addUnsafeEnchantments(enchantmentMap);
+        ItemMeta itemMeta = itemstack.getItemMeta();
+        String[] loreArray = lore.split("\\|\\|");
+        List<String> loreList = new ArrayList<>();
+        for (String e : loreArray) {
+            loreList.add(ChatColor.translateAlternateColorCodes('&', e).trim());
+        }
+        itemMeta.setLore(loreList);
+        itemMeta.setDisplayName(itemName);
+        itemstack.setItemMeta(itemMeta);
+    }
+
+    private void addEnchantments(String enchantments) {
+        if (enchantments.equalsIgnoreCase("none")) {
+            return;
+        }
+
+        int enchantmentLevel;
+        Enchantment enchantment;
+        int enchantmentID;
+
+        String[] enchantmentSplit = enchantments.split(",", 0); // enchant1,enchant2 -> [enchantname],[lvl]
+        for (String e : enchantmentSplit) {
+            try {
+                if (e.split(":", 2).length != 2) {
+                    throw new ArrayIndexOutOfBoundsException();
+                }
+
+                enchantment = Enchantment.getByName(e.split(":", 2)[0].toUpperCase());
+                enchantmentLevel = Integer.parseInt(e.split(":", 2)[1]);
+
+                if (enchantment == null) {
+                    enchantmentID = Integer.parseInt(e.split(":", 2)[0]);
+                    enchantment = new EnchantmentWrapper(enchantmentID);
+                }
+                enchantmentMap.put(enchantment, enchantmentLevel);
+            } catch (Exception err) {
+                Bukkit.getLogger().severe("Failed to read item enchant in config: " + e);
+                return;
+            }
+
+        }
+    }
+
     private void addAmount(String amount) {
         try {
             this.amount = Integer.parseInt(amount);
@@ -230,11 +236,6 @@ public class chestRandomizationItem implements ConfigurationSerializable {
 
     private void addLore(String lore) {
         this.lore = lore;
-    }
-
-    @SuppressWarnings("unused")
-    public static chestRandomizationItem deserialize(Map data) {
-        return new chestRandomizationItem(data);
     }
 
     public ItemStack getItem() {
@@ -250,7 +251,7 @@ public class chestRandomizationItem implements ConfigurationSerializable {
     }
 
     public Map<String, Object> serialize() {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         generateItem();
         map.put("name", itemName);
         map.put("material", item.toString());

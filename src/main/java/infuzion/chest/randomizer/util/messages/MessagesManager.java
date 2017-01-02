@@ -1,7 +1,7 @@
 package infuzion.chest.randomizer.util.messages;
 
 import infuzion.chest.randomizer.ChestRandomizer;
-import infuzion.chest.randomizer.util.configuration.configManager;
+import infuzion.chest.randomizer.util.configuration.ConfigManager;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -9,13 +9,13 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 
-public class messagesManager {
+public class MessagesManager {
 
     private final ChestRandomizer pl;
     private File messagesFile;
     private FileConfiguration messagesConfig;
 
-    public messagesManager(ChestRandomizer pl) {
+    public MessagesManager(ChestRandomizer pl) {
         this.pl = pl;
         messagesFile = new File(pl.getDataFolder(), "messages.yml");
         messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
@@ -23,7 +23,7 @@ public class messagesManager {
     }
 
     private void init() {
-        messagesConfig.options().header(configManager.createHeader(new String[]{"",
+        messagesConfig.options().header(ConfigManager.createHeader(new String[]{"",
                 "ChestRandomizer v" + pl.getVersion() + " Message Config:",
                 "%prefix% - Adds the customizable prefix in place of this",
                 "%servername% - Adds the customizable name in place of this",
@@ -58,6 +58,9 @@ public class messagesManager {
         addMessage("Admin.Create.Exists", "%prefix% &4The group you specified exists!");
         addMessage("Admin.Create.Success", "%prefix% &aSuccessfully created the group!");
         addMessage("RandomizeAll.Success", "%prefix% &a%amount% chests have been successfully randomized!");
+        addMessage("RandomizeAll.Progress.Chat", "%prefix% &a%percent% done [%progressbar%]");
+        addMessage("RandomizeAll.Progress.Title.Main", "&a%percent%");
+        addMessage("RandomizeAll.Progress.Title.SubTitle", "&a%progressbar%");
         addMessage("RandomizeAll.Help", "%prefix% &4Usage /cr randomizeall all\n" +
                 "%prefix% &4Usage /cr randomizeall <group>\n" +
                 "%prefix% &4Usage /cr randomizeall <x1> <y1> <z1> <x2> <y2> <z2> [world]\n" +

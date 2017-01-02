@@ -4,10 +4,6 @@ import infuzion.chest.randomizer.ChestRandomizer;
 
 @SuppressWarnings("WeakerAccess")
 public class Messages {
-    private final static String errorPrefix = "ChestRandomizationError.";
-    private final static String variablePrefix = "Variables.";
-    private final static String adminPrefix = "Admin.";
-    private final static String helpPrefix = "Help.";
     public static String error_direction;
     public static String error_number;
     public static String error_permission;
@@ -41,10 +37,16 @@ public class Messages {
     public static String help_help;
     public static String help_empty;
     public static String randomizeall_success;
+    public static String randomizeall_percent_chat;
+    public static String randomizeall_percent_title_main;
+    public static String randomizeall_percent_title_subtitle;
     public static String randomizeall_help;
     public static String help_randomizeall;
-
-    private static messagesManager message;
+    private final static String errorPrefix = "ChestRandomizationError.";
+    private final static String variablePrefix = "Variables.";
+    private final static String adminPrefix = "Admin.";
+    private final static String helpPrefix = "Help.";
+    private static MessagesManager message;
 
     public Messages(ChestRandomizer pl) {
         message = pl.getMessagesManager();
@@ -89,6 +91,9 @@ public class Messages {
         admin_create_success = message.getMessage(adminPrefix + "Create.Success");
 
         randomizeall_success = message.getMessage("RandomizeAll.Success");
+        randomizeall_percent_chat = message.getMessage("RandomizeAll.Progress.Chat");
+        randomizeall_percent_title_main = message.getMessage("RandomizeAll.Progress.Title.Main");
+        randomizeall_percent_title_subtitle = message.getMessage("RandomizeAll.Progress.Title.SubTitle");
         randomizeall_help = message.getMessage("RandomizeAll.Help");
 
         variable_prefix = message.getMessage(variablePrefix + "Prefix");

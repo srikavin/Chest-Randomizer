@@ -1,18 +1,16 @@
 package infuzion.chest.randomizer.command;
 
 import infuzion.chest.randomizer.ChestRandomizer;
-import infuzion.chest.randomizer.storage.chestLocation;
-import infuzion.chest.randomizer.util.Direction;
+import infuzion.chest.randomizer.storage.ChestLocation;
+import infuzion.chest.randomizer.storage.ChestManager;
+import infuzion.chest.randomizer.util.RandomizationGroup;
 import infuzion.chest.randomizer.util.Utilities;
-import infuzion.chest.randomizer.util.configuration.chestRandomizationItem;
-import infuzion.chest.randomizer.util.configuration.configManager;
+import infuzion.chest.randomizer.util.configuration.ChestRandomizationItem;
+import infuzion.chest.randomizer.util.configuration.ConfigManager;
 import infuzion.chest.randomizer.util.messages.Messages;
-import io.netty.util.internal.ThreadLocalRandom;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -23,18 +21,21 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CommandMain implements CommandExecutor {
-    private static final int[] axis = {3, 4, 2, 5};
+    private static final BlockFace[] axis = {BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST};
     private static final ThreadLocalRandom random = ThreadLocalRandom.current();
     private static int min;
     private static int max;
     private final ChestRandomizer pl;
-    private final configManager configManager;
-    private final infuzion.chest.randomizer.storage.chestManager chestManager;
+    private final ConfigManager configManager;
+    private final ChestManager chestManager;
 
 
     public CommandMain(ChestRandomizer pl) {
@@ -44,22 +45,11 @@ public class CommandMain implements CommandExecutor {
         reloadMinMax();
     }
 
-    private void reloadMinMax() {
-        max = pl.getConfig().getInt("ChestRandomizer.RandomizerSettings.MaximumItems");
-        min = pl.getConfig().getInt("ChestRandomizer.RandomizerSettings.MinimumItems");
-        if (max < 0) {
-            max = 0;
-        }
-        if (min < 0) {
-            min = 0;
-        }
-    }
-
-    private static int yawToFace(float yaw) {
+    private static BlockFace yawToFace(float yaw) {
         return axis[Math.round(yaw / 90f) & 0x3];
     }
 
-    public static boolean randomizeChest(Location location, int facing, final String group, final ChestRandomizer pl) {
+    public static boolean randomizeChest(Location location, BlockFace facing, final RandomizationGroup group, final ChestRandomizer pl) {
 
         //Position and face the chest properly
         Block block = location.getBlock();
@@ -68,12 +58,13 @@ public class CommandMain implements CommandExecutor {
         final Inventory chestInv = chest.getBlockInventory();
 
         //noinspection deprecation
-        chest.setRawData((byte) facing);
+        chest.setData(new org.bukkit.material.Chest(facing));
+        chest.update();
         chestInv.setContents(new ItemStack[]{});
 
         new BukkitRunnable() {
             public void run() {
-                final List<chestRandomizationItem> toAdd = pl.getConfigManager().getConfigValue(group);
+                final List<ChestRandomizationItem> toAdd = pl.getConfigManager().getConfigValue(group);
                 if (toAdd.size() <= 0) {
                     pl.getLogger().warning(pl.getPrefix() + " Group " + group + " is empty. This will result in an empty    chest");
                     return;
@@ -83,12 +74,12 @@ public class CommandMain implements CommandExecutor {
                     ritems = min;
                 }
 
-                final List<ItemStack> items = new ArrayList<ItemStack>();
+                final List<ItemStack> items = new ArrayList<>();
 
                 final int toAddSize = toAdd.size();
                 for (int i = 0; i < ritems; i += 0) {
                     int slot = random.nextInt(toAddSize);
-                    chestRandomizationItem cur = toAdd.get(slot);
+                    ChestRandomizationItem cur = toAdd.get(slot);
                     if (pl.randomize(cur.getPercent())) {
                         if (cur.getItem() != null) {
                             items.add(cur.getItem());
@@ -112,6 +103,17 @@ public class CommandMain implements CommandExecutor {
             }
         }.runTaskAsynchronously(pl);
         return true;
+    }
+
+    private void reloadMinMax() {
+        max = pl.getConfig().getInt("ChestRandomizer.RandomizerSettings.MaximumItems");
+        min = pl.getConfig().getInt("ChestRandomizer.RandomizerSettings.MinimumItems");
+        if (max < 0) {
+            max = 0;
+        }
+        if (min < 0) {
+            min = 0;
+        }
     }
 
     private void adminCommand(ChestRandomizer plugin, CommandSender sender, String[] args) {
@@ -143,7 +145,7 @@ public class CommandMain implements CommandExecutor {
                     return;
                 }
                 if (args.length > 3) {
-                    if (!plugin.getConfigManager().addConfig(new chestRandomizationItem(item, percent), args[3])) {
+                    if (!plugin.getConfigManager().addConfig(new ChestRandomizationItem(item, percent), args[3])) {
                         p.sendMessage(Messages.error_group);
                         return;
                     }
@@ -151,7 +153,7 @@ public class CommandMain implements CommandExecutor {
                     return;
 
                 }
-                if (!plugin.getConfigManager().addConfig(new chestRandomizationItem(item, percent))) {
+                if (!plugin.getConfigManager().addConfig(new ChestRandomizationItem(item, percent))) {
                     p.sendMessage(Messages.error_unknown);
                     return;
                 }
@@ -186,17 +188,12 @@ public class CommandMain implements CommandExecutor {
             }
 
             String group = args[2];
-            List<String> toSet = new ArrayList<String>();
+            List<String> toSet = new ArrayList<>();
             plugin.getConfigManager().set("Groups." + group, toSet);
             sender.sendMessage(Messages.admin_create_success);
         } else {
             sender.sendMessage(Messages.admin_help);
         }
-    }
-
-    private int getDirection(String dir) {
-        Direction d = Direction.fromString(dir);
-        return d.getDirection();
     }
 
     private String getHelp(CommandSender sender) {
@@ -242,6 +239,25 @@ public class CommandMain implements CommandExecutor {
         } else if (args[0].equalsIgnoreCase("randomizeall")) {
             randomizeAll(pl, sender, args);
             return true;
+        } else if (args[0].equalsIgnoreCase("stress")) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    final int[] i = {0};
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            if (i[0] > 255) {
+                                cancel();
+                            }
+                            System.out.println(Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                                    "execute @e ~ ~ ~ /cr r default ~ " + i[0] + " ~"));
+                            i[0]++;
+                        }
+                    }.runTaskTimer(pl, 0, 2);
+                }
+            }.runTaskAsynchronously(pl);
+            return true;
         } else if (args[0].equalsIgnoreCase("admin")) {
             adminCommand(pl, sender, args);
             return true;
@@ -277,8 +293,8 @@ public class CommandMain implements CommandExecutor {
                 }
 
                 if (configManager.groupExists(group)) {
-                    randomizeChest(location, yawToFace(location.getYaw()), group, pl);
-                    pl.getChestManager().addChest(location, Direction.fromInt(yawToFace(location.getYaw())), group);
+                    randomizeChest(location, yawToFace(location.getYaw()), RandomizationGroup.getGroup(group), pl);
+                    pl.getChestManager().addChest(location, yawToFace(location.getYaw()), group);
                     sender.sendMessage(Messages.randomize_success);
                 } else {
                     sender.sendMessage(Messages.error_group);
@@ -317,7 +333,7 @@ public class CommandMain implements CommandExecutor {
 
                     boolean result;
                     if (configManager.groupExists(group)) {
-                        result = randomizeChest(loc, dir, group);
+                        result = randomizeChest(loc, dir, RandomizationGroup.getGroup(group));
                     } else {
                         sender.sendMessage(Messages.error_group);
                         return true;
@@ -327,7 +343,7 @@ public class CommandMain implements CommandExecutor {
                         return true;
                     }
                     sender.sendMessage(Messages.randomize_success);
-                    pl.getChestManager().addChest(loc, Direction.fromInt(getDirection(dir)), group);
+                    pl.getChestManager().addChest(loc, Utilities.stringToBlockFace(dir), group);
 
                 } catch (NumberFormatException e) {
                     sender.sendMessage(Messages.error_number);
@@ -356,7 +372,7 @@ public class CommandMain implements CommandExecutor {
         if (args[1].equalsIgnoreCase("all")) {
             randomizeAll(chestManager.getAllChests(), sender);
         } else if (plugin.getConfigManager().groupExists(args[1])) {
-            randomizeAll(chestManager.getAllChestsInGroup(args[1]), sender);
+            randomizeAll(chestManager.getAllChestsInGroup(RandomizationGroup.getGroup(args[1])), sender);
         } else if (args.length == 7 || args.length == 8) { //cr randomizeall [x1] [y1] [z1] [x1] [y2] [z2]
             Location loc1 = Utilities.parseLocation(args[1], args[2], args[3], sender);
             Location loc2 = Utilities.parseLocation(args[4], args[5], args[6], sender);
@@ -401,42 +417,110 @@ public class CommandMain implements CommandExecutor {
         }
     }
 
-    private int randomizeAll(final List<chestLocation> list, final CommandSender sender, final boolean recursive) {
-        final int[] counter = {0};
-        if (list.size() < 101) {
-            for (chestLocation e : list) {
-                chestManager.randomize(e);
-                counter[0]++;
-            }
-            if (!recursive) {
-                sender.sendMessage(Messages.randomizeall_success.replace("%amount%", String.valueOf(counter[0])));
-            }
-        } else {
-            final int listSize = list.size();
+    private void randomizeAll(final List<ChestLocation> list, final CommandSender sender, final boolean recursive,
+                              final AtomicInteger amountDone, final int totalSize) {
+        final int size = list.size();
+        if (!recursive) {
             new BukkitRunnable() {
+                private final NumberFormat percentageFormat = NumberFormat.getPercentInstance();
+                private final String notDoneColor = ChatColor.RED.toString();
+                private final String doneColor = ChatColor.GREEN.toString();
+                private final char progressDoneChar = '\u2588';
+                private final char progressNotDoneChar = '\u2588';
+                private final int amount = 10;
+                private boolean sent25percent = false;
+                private boolean sent50percent = false;
+
+                private String generateProgressBar(double percent) {
+                    int sliceAmount = 100 / amount;
+                    double slicesDone = percent * 100 / sliceAmount;
+                    StringBuffer toRet = new StringBuffer();
+                    int i;
+                    toRet.append(doneColor);
+                    for (i = 0; i <= slicesDone; i++) {
+                        toRet.append(progressDoneChar);
+                    }
+                    toRet.append(notDoneColor);
+                    for (; i <= amount; i++) {
+                        toRet.append(progressNotDoneChar);
+                    }
+
+                    return toRet.toString();
+                }
+
+                @Override
                 public void run() {
-                    counter[0] += randomizeAll(list.subList(0, listSize / 2), sender, true);
-                    counter[0] += randomizeAll(list.subList(listSize / 2, listSize), sender, true);
-                    if (!recursive) {
-                        sender.sendMessage(Messages.randomizeall_success.replace("%amount%", String.valueOf(listSize)));
+                    percentageFormat.setMaximumFractionDigits(1);
+                    while (true) {
+                        double percent = amountDone.get() / (double) size;
+                        if (sender instanceof Player) {
+                            Player player = (Player) sender;
+                            player.sendTitle(Messages.randomizeall_percent_title_main.replace("%percent%",
+                                    percentageFormat.format(percent)),
+                                    Messages.randomizeall_percent_title_subtitle.replace("%progressbar%", generateProgressBar(percent)),
+                                    1, 2, 2);
+                            if (amountDone.get() >= size) {
+                                sender.sendMessage(Messages.randomizeall_success.replace("%amount%",
+                                        String.valueOf(amountDone.get())));
+                                break;
+                            }
+                        } else if (totalSize > 200) {
+                            if (!sent25percent && amountDone.get() >= size / 4) {
+                                sender.sendMessage(Messages.randomizeall_percent_chat.replace("%percent%",
+                                        percentageFormat.format(percent)).replace("%progressbar%",
+                                        generateProgressBar(percent)));
+                                sent25percent = true;
+                            }
+                            if (!sent50percent && amountDone.get() >= size / 2) {
+                                sender.sendMessage(Messages.randomizeall_percent_chat.replace("%percent%",
+                                        percentageFormat.format(percent)).replace("%progressbar%",
+                                        generateProgressBar(percent)));
+                                sent50percent = true;
+                            }
+                        }
+                        if (amountDone.get() >= size) {
+                            sender.sendMessage(Messages.randomizeall_success.replace("%amount%",
+                                    String.valueOf(amountDone.get())));
+                            cancel();
+                            return;
+                        }
+                        try {
+                            Thread.sleep(25);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-            }.runTaskLater(pl, 0);
+            }.runTaskAsynchronously(pl);
         }
-        return counter[0];
+        if (size <= 100 || size <= totalSize / 10) {
+            for (ChestLocation e : list) {
+                chestManager.randomize(e);
+                amountDone.incrementAndGet();
+            }
+        } else {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    randomizeAll(list.subList(0, size / 10), sender, true, amountDone, totalSize);
+                    randomizeAll(list.subList(size / 10, size), sender, true, amountDone, totalSize);
+                }
+            }.runTaskLater(pl, 1);
+        }
+
     }
 
-    private void randomizeAll(List<chestLocation> locations, CommandSender sender) {
-        randomizeAll(locations, sender, false);
+    private void randomizeAll(List<ChestLocation> locations, CommandSender sender) {
+        randomizeAll(locations, sender, false, new AtomicInteger(0), locations.size());
     }
 
-    private boolean randomizeChest(Location loc, String dir, String group) {
-        int facing = getDirection(dir);
-        if (facing > 1) {
+    private boolean randomizeChest(Location loc, String dir, RandomizationGroup group) {
+        BlockFace facing = Utilities.stringToBlockFace(dir);
+        if (facing != null) {
             randomizeChest(loc, facing, group, pl);
             return true;
         } else {
-            return randomizeChest(loc, "n", group);
+            return false;
         }
     }
 }

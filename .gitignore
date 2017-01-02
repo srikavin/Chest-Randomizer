@@ -9,9 +9,9 @@ Desktop.ini
 $RECYCLE.BIN/
 
 # IntelliJ Idea Files
-.idea/
+.idea/libraries/
 target/
-*.iml
+.idea/dictionaries/
 
 # Windows Installer files
 *.cab
@@ -48,3 +48,8 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+.idea/inspectionProfiles/
+.idea/sqldialects.xml
+.idea/uiDesigner.xml
+.idea/workspace.xml
+src/test/

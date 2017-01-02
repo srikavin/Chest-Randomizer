@@ -4,6 +4,7 @@ import infuzion.chest.randomizer.util.messages.Messages;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ProxiedCommandSender;
 import org.bukkit.entity.Entity;
@@ -33,5 +34,43 @@ public class Utilities {
 
             return null;
         }
+    }
+
+    public static BlockFace stringToBlockFace(String string) {
+        String bFString;
+        switch (string.toLowerCase().charAt(0)) {
+            case 'n':
+                bFString = "NORTH";
+                break;
+            case 's':
+                bFString = "SOUTH";
+                break;
+            case 'e':
+                bFString = "EAST";
+                break;
+            case 'w':
+                bFString = "WEST";
+                break;
+            default:
+                bFString = string;
+                break;
+        }
+        return BlockFace.valueOf(bFString);
+    }
+
+    public static String center(String s, int size, char pad) {
+        if (s == null || size <= s.length()) {
+            return s;
+        }
+
+        StringBuilder sb = new StringBuilder(size);
+        for (int i = 0; i < (size - s.length()) / 2; i++) {
+            sb.append(pad);
+        }
+        sb.append(s);
+        while (sb.length() < size) {
+            sb.append(pad);
+        }
+        return sb.toString();
     }
 }

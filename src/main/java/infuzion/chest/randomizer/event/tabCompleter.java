@@ -19,8 +19,8 @@ public class tabCompleter implements TabCompleter {
     }
 
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> possible = new ArrayList<String>();
-        Map<String, String> map = new HashMap<String, String>();
+        List<String> possible = new ArrayList<>();
+        Map<String, String> map = new HashMap<>();
         if (sender instanceof Player) {
             Player p = (Player) sender;
             if (args.length == 1) {
@@ -83,7 +83,7 @@ public class tabCompleter implements TabCompleter {
                 }
             }
         }
-        return new ArrayList<String>();
+        return new ArrayList<>();
     }
 
 

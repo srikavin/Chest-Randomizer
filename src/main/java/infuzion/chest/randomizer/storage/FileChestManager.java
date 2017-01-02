@@ -11,12 +11,12 @@ import java.io.IOException;
 import java.util.*;
 
 @SuppressWarnings("unchecked")
-public class fileChestManager extends chestManager {
+public class FileChestManager extends ChestManager {
     private final YamlConfiguration chestConfig;
     private final File chestConfigFile;
     private BukkitTask runnable;
 
-    public fileChestManager(ChestRandomizer plugin) {
+    public FileChestManager(ChestRandomizer plugin) {
         super(plugin);
         chestConfigFile = new File(plugin.getDataFolder(), "chests.yml");
         chestConfig = YamlConfiguration.loadConfiguration(chestConfigFile);
@@ -66,14 +66,14 @@ public class fileChestManager extends chestManager {
     }
 
     void save() {
-        Map<String, List<chestLocation>> groups = new HashMap<String, List<chestLocation>>();
-        for (chestLocation e : chests) {
-            String groupName = e.getGroup();
+        Map<String, List<ChestLocation>> groups = new HashMap<>();
+        for (ChestLocation e : chests) {
+            String groupName = e.getGroup().getName();
             List list;
             if (groups.containsKey(groupName)) {
                 list = groups.get(groupName);
             } else {
-                list = new ArrayList<chestLocation>();
+                list = new ArrayList<>();
             }
 
             list.add(e);
@@ -109,7 +109,7 @@ public class fileChestManager extends chestManager {
             return;
         }
         for (String groupName : chestConfig.getConfigurationSection("ChestRandomizer").getValues(false).keySet()) {
-            for (chestLocation location : (List<chestLocation>) chestConfig.getList("ChestRandomizer." + groupName)) {
+            for (ChestLocation location : (List<ChestLocation>) chestConfig.getList("ChestRandomizer." + groupName)) {
                 chests.add(location);
             }
         }
