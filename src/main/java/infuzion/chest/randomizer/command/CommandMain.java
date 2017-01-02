@@ -49,7 +49,7 @@ public class CommandMain implements CommandExecutor {
         return axis[Math.round(yaw / 90f) & 0x3];
     }
 
-    public static boolean randomizeChest(Location location, BlockFace facing, final RandomizationGroup group, final ChestRandomizer pl) {
+    public static void randomizeChest(Location location, BlockFace facing, final RandomizationGroup group, final ChestRandomizer pl) {
 
         //Position and face the chest properly
         Block block = location.getBlock();
@@ -102,7 +102,6 @@ public class CommandMain implements CommandExecutor {
                 }.runTaskLater(pl, 0);
             }
         }.runTaskAsynchronously(pl);
-        return true;
     }
 
     private void reloadMinMax() {
@@ -434,7 +433,7 @@ public class CommandMain implements CommandExecutor {
                 private String generateProgressBar(double percent) {
                     int sliceAmount = 100 / amount;
                     double slicesDone = percent * 100 / sliceAmount;
-                    StringBuffer toRet = new StringBuffer();
+                    StringBuilder toRet = new StringBuilder();
                     int i;
                     toRet.append(doneColor);
                     for (i = 0; i <= slicesDone; i++) {
