@@ -238,25 +238,6 @@ public class CommandMain implements CommandExecutor {
         } else if (args[0].equalsIgnoreCase("randomizeall")) {
             randomizeAll(pl, sender, args);
             return true;
-        } else if (args[0].equalsIgnoreCase("stress")) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    final int[] i = {0};
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            if (i[0] > 255) {
-                                cancel();
-                            }
-                            System.out.println(Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                                    "execute @e ~ ~ ~ /cr r default ~ " + i[0] + " ~"));
-                            i[0]++;
-                        }
-                    }.runTaskTimer(pl, 0, 2);
-                }
-            }.runTaskAsynchronously(pl);
-            return true;
         } else if (args[0].equalsIgnoreCase("admin")) {
             adminCommand(pl, sender, args);
             return true;
