@@ -2,7 +2,7 @@ package infuzion.chest.randomizer.storage;
 
 import infuzion.chest.randomizer.ChestRandomizer;
 import infuzion.chest.randomizer.command.CommandMain;
-import infuzion.chest.randomizer.util.RandomizationGroup;
+import infuzion.chest.randomizer.util.randomize.RandomizationGroup;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 
@@ -12,10 +12,10 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class ChestManager {
-    final List<ChestLocation> chests = new CopyOnWriteArrayList<>();
-    protected ChestRandomizer plugin;
+    protected final List<ChestLocation> chests = new CopyOnWriteArrayList<>();
+    protected final ChestRandomizer plugin;
 
-    ChestManager(ChestRandomizer plugin) {
+    protected ChestManager(ChestRandomizer plugin) {
         this.plugin = plugin;
     }
 
@@ -97,6 +97,6 @@ public abstract class ChestManager {
         CommandMain.randomizeChest(chestLocation, chestLocation.getDir(), chestLocation.getGroup(), plugin);
     }
 
-    abstract void save();
+    protected abstract void save();
 
 }

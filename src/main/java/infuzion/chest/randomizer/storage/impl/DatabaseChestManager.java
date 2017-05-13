@@ -1,6 +1,8 @@
-package infuzion.chest.randomizer.storage;
+package infuzion.chest.randomizer.storage.impl;
 
 import infuzion.chest.randomizer.ChestRandomizer;
+import infuzion.chest.randomizer.storage.ChestLocation;
+import infuzion.chest.randomizer.storage.ChestManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -24,7 +26,7 @@ public class DatabaseChestManager extends ChestManager {
     public DatabaseChestManager(ChestRandomizer chestRandomizer, Connection connection, String database, String tableName) {
         super(chestRandomizer);
         this.connection = connection;
-        fullTableName = database + "." + tableName;
+        fullTableName = database + '.' + tableName;
 
         try {
             DatabaseMetaData dbm = connection.getMetaData();
@@ -58,7 +60,7 @@ public class DatabaseChestManager extends ChestManager {
                         "direction VARCHAR(16), " +
                         "`group` VARCHAR(127), " +
                         "world VARCHAR(127))";
-                plugin.getLogger().severe(toExec);
+                plugin.getLevelLogger().severe(toExec);
                 connection.prepareStatement(toExec).executeUpdate();
                 connection.prepareStatement(createPrimaryIndex).executeUpdate();
             }
@@ -94,7 +96,7 @@ public class DatabaseChestManager extends ChestManager {
         }
     }
 
-    void save() {
+    protected void save() {
         saveToDataBase();
     }
 
@@ -116,10 +118,10 @@ public class DatabaseChestManager extends ChestManager {
                 }
                 pS.executeBatch();
                 toDelete.clear();
-                pS = connection.prepareStatement("" +
+                pS = connection.prepareStatement(
                         "INSERT INTO " + fullTableName +
-                        "(x_location, y_location, z_location, direction, `group`, world)" +
-                        "VALUES(?, ?, ?, ?, ?, ?) ");
+                                "(x_location, y_location, z_location, direction, `group`, world)"
+                                + "VALUES(?, ?, ?, ?, ?, ?) ");
                 for (ChestLocation chest : toCreate) {
                     pS.setInt(1, chest.getBlockX());
                     pS.setInt(2, chest.getBlockY());

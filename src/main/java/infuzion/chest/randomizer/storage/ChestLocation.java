@@ -2,7 +2,7 @@ package infuzion.chest.randomizer.storage;
 
 import infuzion.chest.randomizer.util.BlockFaceWrapper;
 import infuzion.chest.randomizer.util.Direction;
-import infuzion.chest.randomizer.util.RandomizationGroup;
+import infuzion.chest.randomizer.util.randomize.RandomizationGroup;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -15,8 +15,8 @@ import java.util.Map;
 
 @SerializableAs("CRChestLocation")
 public class ChestLocation extends Location implements ConfigurationSerializable {
-    private BlockFace direction;
-    private RandomizationGroup group;
+    private final BlockFace direction;
+    private final RandomizationGroup group;
 
     public ChestLocation(Location loc, BlockFace dir, String group) {
         super(loc.getWorld(), loc.getX(), loc.getY(), loc.getZ());
@@ -87,6 +87,8 @@ public class ChestLocation extends Location implements ConfigurationSerializable
     }
 
     public boolean similar(Location location) {
-        return location.getBlockX() == this.getBlockX() && location.getBlockY() == this.getBlockY() && location.getBlockZ() == this.getBlockZ();
+        return (location.getBlockX() == this.getBlockX())
+                && (location.getBlockY() == this.getBlockY())
+                && (location.getBlockZ() == this.getBlockZ());
     }
 }

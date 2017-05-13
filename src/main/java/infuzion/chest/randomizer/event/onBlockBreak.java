@@ -19,7 +19,7 @@ public class onBlockBreak implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockBreakEvent(BlockBreakEvent e) {
-        if (!e.isCancelled() && e.getBlock().getType() == Material.CHEST) {
+        if (!e.isCancelled() && (e.getBlock().getType() == Material.CHEST)) {
             if (plugin.getConfigManager().getBoolean("RemoveChestOnBreak")) {
                 if (plugin.getConfigManager().getBoolean("RequirePermissionOnBreak")) {
                     String perm = plugin.getConfigManager().getString("PermissionOnBreak");

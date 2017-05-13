@@ -13,6 +13,10 @@ public class BlockFaceWrapper implements ConfigurationSerializable {
         this.face = face;
     }
 
+    public BlockFaceWrapper(String name) {
+        this.face = BlockFace.valueOf(name);
+    }
+
     @SuppressWarnings("unused")
     public BlockFaceWrapper(Map<String, Object> map) {
         this.face = BlockFace.valueOf((String) map.get("direction"));

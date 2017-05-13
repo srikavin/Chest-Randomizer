@@ -8,9 +8,13 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MessagesManager {
 
+    private static final Pattern PREFIX_VARIABLE = Pattern.compile("%prefix%", Pattern.LITERAL);
+    private static final Pattern SERVER_NAME_VARIABLE = Pattern.compile("%servername%", Pattern.LITERAL);
     private final ChestRandomizer pl;
     private File messagesFile;
     private FileConfiguration messagesConfig;
@@ -87,7 +91,7 @@ public class MessagesManager {
 
     String getMessage(String messageName) {
         String message = messagesConfig.getString("ChestRandomizer.Messages." + messageName);
-        if (message != null && !message.equals("")) {
+        if ((message != null) && !message.isEmpty()) {
             return parseVariables(message);
         } else {
             if (messageName.equals("ChestRandomizationError.Message")) {
@@ -106,8 +110,7 @@ public class MessagesManager {
     }
 
     private String parseVariables(String input) {
-        input = input.replace("%prefix%", getMessage("Variables.Prefix", false))
-                .replace("%servername%", getMessage("Variables.ServerName", false));
+        input = SERVER_NAME_VARIABLE.matcher(PREFIX_VARIABLE.matcher(input).replaceAll(Matcher.quoteReplacement(getMessage("Variables.Prefix", false)))).replaceAll(Matcher.quoteReplacement(getMessage("Variables.ServerName", false)));
         return ChatColor.translateAlternateColorCodes('&', input);
     }
 

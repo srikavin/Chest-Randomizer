@@ -3,11 +3,11 @@ package infuzion.chest.randomizer.command;
 import infuzion.chest.randomizer.ChestRandomizer;
 import infuzion.chest.randomizer.storage.ChestLocation;
 import infuzion.chest.randomizer.storage.ChestManager;
-import infuzion.chest.randomizer.util.RandomizationGroup;
 import infuzion.chest.randomizer.util.Utilities;
-import infuzion.chest.randomizer.util.configuration.ChestRandomizationItem;
 import infuzion.chest.randomizer.util.configuration.ConfigManager;
 import infuzion.chest.randomizer.util.messages.Messages;
+import infuzion.chest.randomizer.util.randomize.ChestRandomizationItem;
+import infuzion.chest.randomizer.util.randomize.RandomizationGroup;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -19,6 +19,7 @@ import org.bukkit.command.ProxiedCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.text.NumberFormat;
@@ -31,18 +32,40 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CommandMain implements CommandExecutor {
     private static final BlockFace[] axis = {BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST};
     private static final ThreadLocalRandom random = ThreadLocalRandom.current();
+    private static final ItemStack[] EMPTY_ITEM_STACK = {};
+    private static boolean hasMainHandMethod;
     private static int min;
     private static int max;
+    private static boolean titleSupported;
+
+    static {
+        try {
+            PlayerInventory.class.getMethod("getItemInMainHand");
+            hasMainHandMethod = true;
+        } catch (NoSuchMethodException e) {
+            hasMainHandMethod = false;
+        }
+    }
+
+    static {
+        try {
+            Player.class.getMethod("sendTitle", String.class, String.class, int.class, int.class, int.class);
+            titleSupported = true;
+        } catch (NoSuchMethodException e) {
+            titleSupported = false;
+        }
+    }
+
     private final ChestRandomizer pl;
     private final ConfigManager configManager;
     private final ChestManager chestManager;
-
 
     public CommandMain(ChestRandomizer pl) {
         this.pl = pl;
         this.configManager = pl.getConfigManager();
         this.chestManager = pl.getChestManager();
         reloadMinMax();
+
     }
 
     private static BlockFace yawToFace(float yaw) {
@@ -59,14 +82,14 @@ public class CommandMain implements CommandExecutor {
 
         //noinspection deprecation
         chest.setData(new org.bukkit.material.Chest(facing));
+        chestInv.setContents(EMPTY_ITEM_STACK);
         chest.update();
-        chestInv.setContents(new ItemStack[]{});
 
         new BukkitRunnable() {
             public void run() {
                 final List<ChestRandomizationItem> toAdd = pl.getConfigManager().getConfigValue(group);
                 if (toAdd.size() <= 0) {
-                    pl.getLogger().warning(pl.getPrefix() + " Group " + group + " is empty. This will result in an empty    chest");
+                    pl.getLevelLogger().warning(pl.getPrefix() + " Group " + group.toString() + " is empty. This will result in an empty    chest");
                     return;
                 }
                 int ritems = random.nextInt(max + 1);
@@ -77,13 +100,12 @@ public class CommandMain implements CommandExecutor {
                 final List<ItemStack> items = new ArrayList<>();
 
                 final int toAddSize = toAdd.size();
-                for (int i = 0; i < ritems; i += 0) {
-                    int slot = random.nextInt(toAddSize);
-                    ChestRandomizationItem cur = toAdd.get(slot);
+
+                for (int i = 0; i < ritems; i++) {
+                    ChestRandomizationItem cur = toAdd.get(random.nextInt(toAddSize));
                     if (pl.randomize(cur.getPercent())) {
                         if (cur.getItem() != null) {
                             items.add(cur.getItem());
-                            i++;
                         }
                     }
                 }
@@ -91,7 +113,7 @@ public class CommandMain implements CommandExecutor {
                 new BukkitRunnable() {
                     public void run() {
                         for (ItemStack e : items) {
-                            int slot = random.nextInt(27);
+                            int slot = random.nextInt(chestInv.getSize() - 1);
                             if (chestInv.getItem(slot) == null) {
                                 chestInv.setItem(slot, e);
                             } else if (e != null) {
@@ -137,9 +159,14 @@ public class CommandMain implements CommandExecutor {
             }
 
             try {
-                int percent = Integer.parseInt(args[2]);
-                ItemStack item = p.getInventory().getItemInMainHand();
-                if (item == null || item.getType().equals(Material.AIR)) {
+                double percent = Double.parseDouble(args[2]);
+                ItemStack item;
+                if (hasMainHandMethod) {
+                    item = p.getInventory().getItemInMainHand();
+                } else {
+                    item = p.getInventory().getItemInHand();
+                }
+                if ((item == null) || item.getType().equals(Material.AIR)) {
                     sender.sendMessage(Messages.admin_add_noitem);
                     return;
                 }
@@ -198,19 +225,19 @@ public class CommandMain implements CommandExecutor {
     private String getHelp(CommandSender sender) {
         StringBuilder help = new StringBuilder();
         if (sender.hasPermission("cr.reload")) {
-            help.append(Messages.help_reload).append("\n");
+            help.append(Messages.help_reload).append('\n');
         }
         if (sender.hasPermission("cr.randomize")) {
-            help.append(Messages.help_randomize).append("\n");
+            help.append(Messages.help_randomize).append('\n');
         }
         if (sender.hasPermission("cr.admin")) {
-            help.append(Messages.help_admin).append("\n");
+            help.append(Messages.help_admin).append('\n');
         }
         if (sender.hasPermission("cr.randomizeall")) {
-            help.append(Messages.help_randomizeall).append("\n");
+            help.append(Messages.help_randomizeall).append('\n');
         }
         String toSend = help.toString();
-        if (toSend.equals("")) {
+        if (toSend.isEmpty()) {
             toSend = Messages.help_empty;
         }
         return toSend;
@@ -223,7 +250,7 @@ public class CommandMain implements CommandExecutor {
         if (args.length < 1) {
             sender.sendMessage(getHelp(sender));
             return true;
-        } else if (args[0].length() < 1 || args[0].equalsIgnoreCase("help")) {
+        } else if ((args[0].length() < 1) || args[0].equalsIgnoreCase("help")) {
             sender.sendMessage(getHelp(sender));
             return true;
         } else if (args[0].equalsIgnoreCase("reload")) {
@@ -256,14 +283,14 @@ public class CommandMain implements CommandExecutor {
             return true;
         } else if (args[0].equalsIgnoreCase("randomize") || args[0].equalsIgnoreCase("r")) {
             String permissionGroup = "default";
-            if (args.length < 3 && args.length > 2) {
+            if ((args.length < 3) && (args.length > 2)) {
                 permissionGroup = args[1];
             }
             if (!sender.hasPermission("cr.randomize." + permissionGroup)) {
                 sender.sendMessage(Messages.error_permission);
                 return true;
             }
-            if (sender instanceof Player && (args.length < 3 || !sender.hasPermission("cr.location." + args[1]))) {
+            if ((sender instanceof Player) && ((args.length < 3) || !sender.hasPermission("cr.location." + args[1]))) {
                 Player p = ((Player) sender);
                 Location location = p.getLocation();
 
@@ -294,11 +321,11 @@ public class CommandMain implements CommandExecutor {
 
                     Location loc = Utilities.parseLocation(sX, sY, sZ, sender);
 
-                    if (sender instanceof ProxiedCommandSender) {
+                    if (Utilities.proxiedCommandSenderExists() && (sender instanceof ProxiedCommandSender)) {
                         loc = Utilities.parseLocation(sX, sY, sZ, ((ProxiedCommandSender) sender).getCallee());
                     }
 
-                    if (args.length > 5 && args[5] != null) {
+                    if ((args.length > 5) && (args[5] != null)) {
                         dir = args[5];
                     }
 
@@ -343,7 +370,7 @@ public class CommandMain implements CommandExecutor {
      * @param args   Arguments sent with the command
      */
     private void randomizeAll(ChestRandomizer plugin, CommandSender sender, String[] args) {
-        if (args.length < 2 || args[1].length() == 0) {
+        if ((args.length < 2) || (args[1].length() == 0)) {
             for (String e : Messages.randomizeall_help.split("\n")) {
                 sender.sendMessage(e);
             }
@@ -353,7 +380,7 @@ public class CommandMain implements CommandExecutor {
             randomizeAll(chestManager.getAllChests(), sender);
         } else if (plugin.getConfigManager().groupExists(args[1])) {
             randomizeAll(chestManager.getAllChestsInGroup(RandomizationGroup.getGroup(args[1])), sender);
-        } else if (args.length == 7 || args.length == 8) { //cr randomizeall [x1] [y1] [z1] [x1] [y2] [z2]
+        } else if ((args.length == 7) || (args.length == 8)) { //cr randomizeall [x1] [y1] [z1] [x1] [y2] [z2]
             Location loc1 = Utilities.parseLocation(args[1], args[2], args[3], sender);
             Location loc2 = Utilities.parseLocation(args[4], args[5], args[6], sender);
             if (loc1 == null) {
@@ -374,7 +401,7 @@ public class CommandMain implements CommandExecutor {
                 }
             }
             randomizeAll(chestManager.getAllChestsInCuboid(loc1, loc2), sender);
-        } else if (args.length == 5 || args.length == 6) { //cr randomizeall [x] [y] [z] [radius] [world]
+        } else if ((args.length == 5) || (args.length == 6)) { //cr randomizeall [x] [y] [z] [radius] [world]
             Location loc = Utilities.parseLocation(args[1], args[2], args[3], sender);
             if (loc == null) {
                 return;
@@ -413,7 +440,7 @@ public class CommandMain implements CommandExecutor {
 
                 private String generateProgressBar(double percent) {
                     int sliceAmount = 100 / amount;
-                    double slicesDone = percent * 100 / sliceAmount;
+                    double slicesDone = (percent * 100) / sliceAmount;
                     StringBuilder toRet = new StringBuilder();
                     int i;
                     toRet.append(doneColor);
@@ -428,6 +455,13 @@ public class CommandMain implements CommandExecutor {
                     return toRet.toString();
                 }
 
+                private void sendTitle(Player player, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+                    if (!titleSupported) {
+                        return;
+                    }
+                    player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+                }
+
                 @Override
                 public void run() {
                     percentageFormat.setMaximumFractionDigits(1);
@@ -435,23 +469,25 @@ public class CommandMain implements CommandExecutor {
                         double percent = amountDone.get() / (double) size;
                         if (sender instanceof Player) {
                             Player player = (Player) sender;
-                            player.sendTitle(Messages.randomizeall_percent_title_main.replace("%percent%",
-                                    percentageFormat.format(percent)),
+                            sendTitle(player,
+                                    Messages.randomizeall_percent_title_main.replace("%percent%",
+                                            percentageFormat.format(percent)),
                                     Messages.randomizeall_percent_title_subtitle.replace("%progressbar%", generateProgressBar(percent)),
                                     1, 2, 2);
                             if (amountDone.get() >= size) {
                                 sender.sendMessage(Messages.randomizeall_success.replace("%amount%",
                                         String.valueOf(amountDone.get())));
-                                break;
+                                return;
                             }
-                        } else if (totalSize > 200) {
-                            if (!sent25percent && amountDone.get() >= size / 4) {
+                        }
+                        if (totalSize > 200) {
+                            if (!sent25percent && (amountDone.get() >= (size / 4))) {
                                 sender.sendMessage(Messages.randomizeall_percent_chat.replace("%percent%",
                                         percentageFormat.format(percent)).replace("%progressbar%",
                                         generateProgressBar(percent)));
                                 sent25percent = true;
                             }
-                            if (!sent50percent && amountDone.get() >= size / 2) {
+                            if (!sent50percent && (amountDone.get() >= (size / 2))) {
                                 sender.sendMessage(Messages.randomizeall_percent_chat.replace("%percent%",
                                         percentageFormat.format(percent)).replace("%progressbar%",
                                         generateProgressBar(percent)));
@@ -471,9 +507,10 @@ public class CommandMain implements CommandExecutor {
                         }
                     }
                 }
-            }.runTaskAsynchronously(pl);
+            }
+                    .runTaskAsynchronously(pl);
         }
-        if (size <= 100 || size <= totalSize / 10) {
+        if ((size <= 100) || (size <= (totalSize / 10))) {
             for (ChestLocation e : list) {
                 chestManager.randomize(e);
                 amountDone.incrementAndGet();

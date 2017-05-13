@@ -9,16 +9,19 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class onPlayerCommandPreprocess implements Listener {
+public class onPlayerCommandPreProcess implements Listener {
+    private static final Pattern GROUP_VARIABLE = Pattern.compile("<group>", Pattern.LITERAL);
     private ChestRandomizer plugin;
 
-    public onPlayerCommandPreprocess(ChestRandomizer plugin) {
+    public onPlayerCommandPreProcess(ChestRandomizer plugin) {
         this.plugin = plugin;
     }
 
     @EventHandler
-    public void playerCommandPreprocessEvent(PlayerCommandPreprocessEvent event) {
+    public void playerCommandPreProcessEvent(PlayerCommandPreprocessEvent event) {
         if (event.getMessage().equalsIgnoreCase("/confirm")) {
             Player player = event.getPlayer();
             if (plugin.getConfirmations().containsKey(player)) {
@@ -30,7 +33,8 @@ public class onPlayerCommandPreprocess implements Listener {
                 String group = plugin.getConfirmationGroups(player);
 
                 plugin.getConfigManager().removeGroup(group);
-                player.sendMessage(Messages.admin_remove_success.replace("<group>", group));
+                player.sendMessage(GROUP_VARIABLE.matcher(Messages.admin_remove_success)
+                        .replaceAll(Matcher.quoteReplacement(group)));
             }
         }
     }

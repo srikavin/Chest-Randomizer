@@ -1,9 +1,9 @@
 package infuzion.chest.randomizer.util.configuration;
 
 import infuzion.chest.randomizer.ChestRandomizer;
-import infuzion.chest.randomizer.util.RandomizationGroup;
 import infuzion.chest.randomizer.util.Utilities;
-import org.bukkit.ChatColor;
+import infuzion.chest.randomizer.util.randomize.ChestRandomizationItem;
+import infuzion.chest.randomizer.util.randomize.RandomizationGroup;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
@@ -11,14 +11,17 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class ConfigManager {
     private final ChestRandomizer pl;
     private FileConfiguration config;
     private Map<RandomizationGroup, List<ChestRandomizationItem>> groups;
+    private Logger logger;
 
     public ConfigManager(ChestRandomizer pl) {
         this.pl = pl;
+        logger = pl.getLevelLogger();
         config = pl.getConfig();
         groups = new HashMap<>();
 
@@ -26,10 +29,8 @@ public class ConfigManager {
         firstRun();
         initGroupList();
 
-        if (config.getBoolean("ChestRandomizer.Verbose-Output")) {
-            for (ChestRandomizationItem e : getAllConfigValues()) {
-                pl.getLogger().info(ChatColor.stripColor(pl.getPrefix()) + "Loaded: " + e.getItem().getType().name());
-            }
+        for (ChestRandomizationItem e : getAllConfigValues()) {
+            pl.getLevelLogger().fine("Loaded: " + e.getItem().getType().name());
         }
     }
 
@@ -37,7 +38,7 @@ public class ConfigManager {
         int longest = 0;
         for (String e : strings) {
             e = e.trim();
-            if (e.length() + 2 > longest) {
+            if ((e.length() + 2) > longest) {
                 longest = e.length() + 2;
             }
         }
@@ -45,17 +46,17 @@ public class ConfigManager {
 
         for (int i1 = 0, stringsLength = strings.length; i1 < stringsLength; i1++) {
             String e = strings[i1];
-            if (e.equalsIgnoreCase("")) {
-                for (int i = 0; i < longest + 1; i++) {
-                    builder.append("*");
+            if (e.length() == 0) {
+                for (int i = 0; i < (longest + 1); i++) {
+                    builder.append('*');
                 }
                 builder.append(" #\n");
-            } else if (i1 != 3 && (i1 == 1 || strings[i1 - 1].equalsIgnoreCase(""))) {
-                builder.append("|")
+            } else if ((i1 != 3) && ((i1 == 1) || (strings[i1 - 1].length() == 0))) {
+                builder.append('|')
                         .append(Utilities.center(e, longest - 1, '-'))
                         .append("| #\n");
             } else {
-                builder.append("| ")
+                builder.append('|').append(' ')
                         .append(Utilities.center(e, longest - 2, ' '))
                         .append("| #\n");
             }
@@ -68,8 +69,9 @@ public class ConfigManager {
         addDefault("firstrun", "no");
 
         if (firstRun) {
-            ArrayList<ConfigurationSerializable> defaultGroup = new ArrayList<>();
-            ArrayList<ConfigurationSerializable> groupTwo = new ArrayList<>();
+            logger.fine("First run detected");
+            List<ConfigurationSerializable> defaultGroup = new ArrayList<>();
+            List<ConfigurationSerializable> groupTwo = new ArrayList<>();
             defaultGroup.add(new ChestRandomizationItem("48% diamond_sword:234 2 0:15 &4Pretty good sword " +
                     "|| &5Created in the realm of &2ice " +
                     "|| &3It is said that the wielder gets stronger"));
@@ -83,35 +85,22 @@ public class ConfigManager {
     }
 
     private List<ChestRandomizationItem> getAllConfigValues() {
-        return getAllConfigValues(true);
-    }
-
-    private List<ChestRandomizationItem> getAllConfigValues(boolean fast) {
-        if (fast) {
-            List<ChestRandomizationItem> toRet = new ArrayList<>();
-            for (RandomizationGroup e : groups.keySet()) {
-                toRet.addAll(groups.get(e));
-            }
-            return toRet;
+        List<ChestRandomizationItem> toRet = new ArrayList<>();
+        for (RandomizationGroup e : groups.keySet()) {
+            toRet.addAll(groups.get(e));
         }
-        List<String> ls = config.getStringList("ChestRandomizer.Groups");
-        config.getConfigurationSection("ChestRandomizer.Groups");
-        for (String e : config.getConfigurationSection("ChestRandomizer.Groups").getValues(false).keySet()) {
-            for (ChestRandomizationItem chestRandomizationItem : getConfigValue(RandomizationGroup.getGroup(e))) {
-                ls.add(chestRandomizationItem.toString());
-            }
-        }
-
-        return loadConfigValues(ls);
+        return toRet;
     }
 
     public List<ChestRandomizationItem> getConfigValue(RandomizationGroup group) {
         return getConfigValue(group, true);
     }
 
+    @SuppressWarnings("MagicNumber")
     private void init() {
         if (config.isDouble("ChestRandomizer.Version")) {
             double version = config.getDouble("ChestRandomizer.Version");
+            logger.finer("Current config version: " + version);
             if (version < 3.0d) {
                 updateConfig30();
                 updateConfig35();
@@ -135,6 +124,7 @@ public class ConfigManager {
 
         addDefault("RandomizerSettings.MaximumItems", 10);
         addDefault("RandomizerSettings.MinimumItems", 2);
+        addDefault("Debug", false);
         addDefault("RemoveChestOnBreak", true);
         addDefault("RequirePermissionOnBreak", false);
         addDefault("PermissionOnBreak", "cr.remove");
@@ -154,6 +144,7 @@ public class ConfigManager {
         config.addDefault("ChestRandomizer." + name, value);
     }
 
+    @SuppressWarnings("MagicNumber")
     private void updateConfig30() {
         List<String> ls = config.getStringList("ChestRandomizer.ByName");
         List<String> ls2 = config.getStringList("ChestRandomizer.ByID");
@@ -179,15 +170,15 @@ public class ConfigManager {
         config.set("ChestRandomizer.Version", 3.0f);
         config.set("ChestRandomizer.ByName", null);
         config.set("ChestRandomizer.ByID", null);
-        pl.getLogger().severe(pl.getPrefix() + "Your config has been updated to config v.3.0");
+        pl.getLevelLogger().severe(pl.getPrefix() + "Your config has been updated to config v.3.0");
         pl.saveConfig();
     }
 
     private List<ChestRandomizationItem> loadConfigValues(List<String> ls) {
         List<ChestRandomizationItem> returnVal = new ArrayList<>();
-        ChestRandomizationItem cSF;
         for (String i : ls) {
-            cSF = new ChestRandomizationItem(i, true);
+            ChestRandomizationItem cSF = new ChestRandomizationItem(i, true);
+            logger.fine("Loaded item: " + i);
             if (!cSF.hasError()) {
                 returnVal.add(cSF);
             }
@@ -197,9 +188,9 @@ public class ConfigManager {
 
     private List<ChestRandomizationItem> oldLoadConfigValues(List<String> ls) {
         List<ChestRandomizationItem> returnVal = new ArrayList<>();
-        ChestRandomizationItem cSF;
         for (String i : ls) {
-            cSF = new ChestRandomizationItem(i);
+            ChestRandomizationItem cSF = new ChestRandomizationItem(i);
+            logger.fine("Loaded old item: " + i);
             if (!cSF.hasError()) {
                 returnVal.add(cSF);
             }
@@ -213,20 +204,18 @@ public class ConfigManager {
         config.getConfigurationSection("ChestRandomizer.Groups");
         for (String e : config.getConfigurationSection("ChestRandomizer.Groups").getValues(false).keySet()) {
             List<ChestRandomizationItem> ls = new ArrayList<>();
-            for (ChestRandomizationItem chestRandomizationItem : getConfigValue(false, e)) {
-                ls.add(chestRandomizationItem);
-            }
+            ls.addAll(getConfigValue(e));
             map.put(e, ls);
         }
 
         for (Map.Entry<String, List<ChestRandomizationItem>> e : map.entrySet()) {
             config.set("ChestRandomizer.Groups." + e.getKey(), e.getValue());
         }
-        pl.getLogger().severe(pl.getPrefix() + "Your config has been updated to config v.3.5");
+        pl.getLevelLogger().severe(pl.getPrefix() + "Your config has been updated to config v.3.5");
         pl.saveConfig();
     }
 
-    private List<ChestRandomizationItem> getConfigValue(boolean old, String group) {
+    private List<ChestRandomizationItem> getConfigValue(String group) {
         List<?> list = config.getList("ChestRandomizer.Groups." + group);
         List<ChestRandomizationItem> toReturn = new ArrayList<>();
         for (Object e : list) {
@@ -244,23 +233,34 @@ public class ConfigManager {
     private void initGroupList() {
         List<ChestRandomizationItem> ls = new ArrayList<>();
         for (String e : config.getConfigurationSection("ChestRandomizer.Groups").getValues(false).keySet()) {
-            ls.addAll(getConfigValue(RandomizationGroup.getGroup(e), false));
-            groups.put(RandomizationGroup.getGroup(e), ls);
-            ls = new ArrayList<>();
+            RandomizationGroup group = RandomizationGroup.getGroup(e);
+            ls.addAll(getConfigValue(group, false));
+            groups.put(group, ls);
+            ls.clear();
         }
     }
 
     private List<ChestRandomizationItem> getConfigValue(RandomizationGroup group, boolean fast) {
-        if (fast) {
+        List<ChestRandomizationItem> items = groups.get(group);
+        if (fast && (!items.isEmpty())) {
             return groups.get(group);
         }
-        @SuppressWarnings("unchecked")
-        List<ChestRandomizationItem> list = (List<ChestRandomizationItem>) config.getList("ChestRandomizer.Groups." + group.getName());
-        List<ChestRandomizationItem> toReturn = new ArrayList<>();
-        for (ChestRandomizationItem e : list) {
-            toReturn.add(e);
+        //noinspection unchecked
+        items = (List<ChestRandomizationItem>) config.getList("ChestRandomizer.Groups." + group.getName());
+        if (fast) {
+            groups.put(group, items);
         }
-        return toReturn;
+
+        logger.fine("Starting");
+        for (Map.Entry<RandomizationGroup, List<ChestRandomizationItem>> entry : groups.entrySet()) {
+            logger.fine("Randomization Group: " + entry.getKey().getName() + " hashcode: " + entry.getKey().hashCode());
+            for (ChestRandomizationItem e : entry.getValue()) {
+                logger.fine(e.toString());
+            }
+        }
+        logger.fine("Ending");
+
+        return items;
     }
 
     public boolean addConfig(ChestRandomizationItem chestRandomizationItem) {
@@ -273,9 +273,7 @@ public class ConfigManager {
             configList.add(chestRandomizationItem);
 
             List<ChestRandomizationItem> itemStorageFormats = new ArrayList<>();
-            for (ChestRandomizationItem e : configList) {
-                itemStorageFormats.add(e);
-            }
+            itemStorageFormats.addAll(configList);
             set("Groups." + group, itemStorageFormats);
             return true;
         }
@@ -298,7 +296,6 @@ public class ConfigManager {
     public String getString(String key) {
         return config.getString("ChestRandomizer." + key);
     }
-
 
     public List<String> getGroupNames() {
         List<String> ret = new ArrayList<>();

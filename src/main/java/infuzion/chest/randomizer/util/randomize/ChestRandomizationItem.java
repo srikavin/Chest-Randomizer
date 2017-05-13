@@ -1,4 +1,4 @@
-package infuzion.chest.randomizer.util.configuration;
+package infuzion.chest.randomizer.util.randomize;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -14,13 +14,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SerializableAs("ChestRandomizationItem")
 public class ChestRandomizationItem implements ConfigurationSerializable {
+    private static final Pattern LORE_LINE_SPLIT = Pattern.compile("\\|\\|");
+    private static final Pattern COLOR_CHARACTER = Pattern.compile("§");
+    private static final Pattern PERCENTAGE_CHARACTER = Pattern.compile("%", Pattern.LITERAL);
     private String configValue;
     private Material item;
     private short data = 0;
-    private int percent = 0;
+    private double percent = 0;
     private boolean error = false;
     private int amount = 1;
     private String lore = "";
@@ -29,7 +34,7 @@ public class ChestRandomizationItem implements ConfigurationSerializable {
     private Map<Enchantment, Integer> enchantmentMap = new HashMap<>();
 
 
-    public ChestRandomizationItem(ItemStack itemStack, int percent) {
+    public ChestRandomizationItem(ItemStack itemStack, double percent) {
         this.itemstack = itemStack;
         this.percent = percent;
         ItemMeta itemMeta = itemStack.getItemMeta();
@@ -38,20 +43,25 @@ public class ChestRandomizationItem implements ConfigurationSerializable {
         this.data = itemStack.getDurability();
 
         this.enchantmentMap = itemStack.getEnchantments();
-        this.lore = "";
 
+        StringBuilder loreBuffer = new StringBuilder();
         if (itemMeta.hasLore()) {
             for (String e : itemMeta.getLore()) {
-                lore += e.replaceAll("§", "&") + "||";
+                loreBuffer.append(COLOR_CHARACTER.matcher(e).replaceAll("&")).append("||");
             }
         }
+
+        this.lore = loreBuffer.toString();
 
         setConfigValue();
     }
 
-    @SuppressWarnings("WeakerAccess")
     public ChestRandomizationItem(Map data) {
-        this.percent = (Integer) data.get("percent");
+        if (data.get("percent") instanceof Integer) {
+            this.percent = (Integer) data.get("percent");
+        } else {
+            this.percent = (Double) data.get("percent");
+        }
         this.itemName = (String) data.get("name");
         this.lore = (String) data.get("lore");
         this.data = Short.parseShort(String.valueOf(data.get("data")));
@@ -61,11 +71,11 @@ public class ChestRandomizationItem implements ConfigurationSerializable {
         generateItem();
     }
 
-    ChestRandomizationItem(String configValue) {
+    public ChestRandomizationItem(String configValue) {
         this(configValue, false);
     }
 
-    ChestRandomizationItem(String configValue, boolean old) {
+    public ChestRandomizationItem(String configValue, boolean old) {
         String[] split = configValue.trim().split(" ", 5);
         if (split.length < 2) {
             Bukkit.getLogger().severe("Failed to read config line: " + configValue);
@@ -113,7 +123,7 @@ public class ChestRandomizationItem implements ConfigurationSerializable {
         }
 
         try {
-            percent = Integer.parseInt(sPercent.replace("%", "")); //[percent]
+            percent = Integer.parseInt(PERCENTAGE_CHARACTER.matcher(sPercent).replaceAll(Matcher.quoteReplacement(""))); //[percent]
         } catch (NumberFormatException e) {
             Bukkit.getLogger().severe("Failed to read percent in config: " + sPercent);
             error = true;
@@ -152,39 +162,42 @@ public class ChestRandomizationItem implements ConfigurationSerializable {
         generateItem();
         ItemMeta itemMeta = this.itemstack.getItemMeta();
 
-        String loreToReturn = "";
+        StringBuilder loreToReturn = new StringBuilder();
         if (itemMeta.hasLore()) {
             for (String e : itemMeta.getLore()) {
-                loreToReturn += e.replaceAll("§", "&") + "||";
+                loreToReturn.append(COLOR_CHARACTER.matcher(e).replaceAll("&")).append("||");
+
             }
         }
 
-        this.configValue = percent + "% " + item.toString() + ":" + data + " " + amount + " " + getEnchantmentsAsString() + " " + loreToReturn;
+        this.configValue = percent + "% " + item.toString() + ':' + data + ' ' + amount + ' ' + getEnchantmentsAsString() + ' ' + loreToReturn;
     }
 
     private String getEnchantmentsAsString() {
-        String enchantments = "";
-
+        StringBuilder enchantments = new StringBuilder();
         for (Enchantment e : enchantmentMap.keySet()) {
-            if (enchantments.equalsIgnoreCase("")) {
-                enchantments += e.getName() + ":" + enchantmentMap.get(e);
+            if (enchantments.length() == 0) {
+                enchantments.append(e.getName()).append(':').append(enchantmentMap.get(e));
 
             } else {
-                enchantments += "," + e.getName() + ":" + enchantmentMap.get(e);
+                enchantments.append(',').append(e.getName()).append(':').append(enchantmentMap.get(e));
             }
         }
 
-        if (enchantments.equalsIgnoreCase("")) {
-            enchantments = "none";
+        String toRet;
+        if (enchantments.length() == 0) {
+            toRet = "none";
+        } else {
+            toRet = enchantments.toString();
         }
-        return enchantments;
+        return toRet;
     }
 
     private void generateItem() {
         itemstack = new ItemStack(item, amount, data);
         itemstack.addUnsafeEnchantments(enchantmentMap);
         ItemMeta itemMeta = itemstack.getItemMeta();
-        String[] loreArray = lore.split("\\|\\|");
+        String[] loreArray = LORE_LINE_SPLIT.split(lore);
         List<String> loreList = new ArrayList<>();
         for (String e : loreArray) {
             loreList.add(ChatColor.translateAlternateColorCodes('&', e).trim());
@@ -203,7 +216,7 @@ public class ChestRandomizationItem implements ConfigurationSerializable {
         Enchantment enchantment;
         int enchantmentID;
 
-        String[] enchantmentSplit = enchantments.split(",", 0); // enchant1,enchant2 -> [enchantname],[lvl]
+        String[] enchantmentSplit = enchantments.split(",", 0); // enchant1,enchant2 -> [enchantName],[lvl]
         for (String e : enchantmentSplit) {
             try {
                 if (e.split(":", 2).length != 2) {
@@ -242,11 +255,11 @@ public class ChestRandomizationItem implements ConfigurationSerializable {
         return itemstack;
     }
 
-    public int getPercent() {
+    public double getPercent() {
         return percent;
     }
 
-    boolean hasError() {
+    public boolean hasError() {
         return error;
     }
 

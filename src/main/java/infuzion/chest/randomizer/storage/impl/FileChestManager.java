@@ -1,13 +1,15 @@
-package infuzion.chest.randomizer.storage;
+package infuzion.chest.randomizer.storage.impl;
 
-import com.google.common.io.Files;
 import infuzion.chest.randomizer.ChestRandomizer;
+import infuzion.chest.randomizer.storage.ChestLocation;
+import infuzion.chest.randomizer.storage.ChestManager;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 @SuppressWarnings("unchecked")
@@ -34,7 +36,7 @@ public class FileChestManager extends ChestManager {
             if (!directory.mkdir()) {
                 return;
             }
-            Files.copy(chestConfigFile, new File(directory, "chests_" + curTime + "_backup.yml"));
+            Files.copy(chestConfigFile.toPath(), new File(directory, "chests_" + curTime + "_backup.yml").toPath());
             File[] files = directory.listFiles();
             if (files == null) {
                 return;
@@ -42,7 +44,8 @@ public class FileChestManager extends ChestManager {
             if (files.length > 25) {
                 Arrays.sort(files, new Comparator<File>() {
                     public int compare(File f1, File f2) {
-                        return -Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
+                        Long lastModified = f1.lastModified();
+                        return lastModified.compareTo(f2.lastModified());
                     }
                 });
 
@@ -53,7 +56,7 @@ public class FileChestManager extends ChestManager {
             }
 
         } catch (IOException e) {
-            plugin.getLogger().severe("chests.yml auto backup failed!");
+            plugin.getLevelLogger().severe("chests.yml auto backup failed!");
         }
     }
 
@@ -65,7 +68,7 @@ public class FileChestManager extends ChestManager {
         saveFile(false);
     }
 
-    void save() {
+    protected void save() {
         Map<String, List<ChestLocation>> groups = new HashMap<>();
         for (ChestLocation e : chests) {
             String groupName = e.getGroup().getName();
@@ -109,9 +112,7 @@ public class FileChestManager extends ChestManager {
             return;
         }
         for (String groupName : chestConfig.getConfigurationSection("ChestRandomizer").getValues(false).keySet()) {
-            for (ChestLocation location : (List<ChestLocation>) chestConfig.getList("ChestRandomizer." + groupName)) {
-                chests.add(location);
-            }
+            chests.addAll((List<ChestLocation>) chestConfig.getList("ChestRandomizer." + groupName));
         }
     }
 

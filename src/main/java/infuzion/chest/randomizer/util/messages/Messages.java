@@ -42,10 +42,10 @@ public class Messages {
     public static String randomizeall_percent_title_subtitle;
     public static String randomizeall_help;
     public static String help_randomizeall;
-    private final static String errorPrefix = "ChestRandomizationError.";
-    private final static String variablePrefix = "Variables.";
-    private final static String adminPrefix = "Admin.";
-    private final static String helpPrefix = "Help.";
+    private static final String errorPrefix = "ChestRandomizationError.";
+    private static final String variablePrefix = "Variables.";
+    private static final String adminPrefix = "Admin.";
+    private static final String helpPrefix = "Help.";
     private static MessagesManager message;
 
     public Messages(ChestRandomizer pl) {
